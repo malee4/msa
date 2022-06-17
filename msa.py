@@ -40,7 +40,7 @@ for s_1 in range(len(strands)):
         for n_1 in range(len(strands[s_1])):
             for n_2 in range(len(strands[s_2])):
                 for i in range(columns):
-                    
+                    print()
         
 ## penalty score
 
