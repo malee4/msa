@@ -1,6 +1,6 @@
 # AUTHOR: Oscar Bulancea Lindvall, KTH Royal Institute of Technology
 # CODE VERSION: 2019, last updated locally June 16, 2022
-# LANGUAGE: Python
+# LANGUAGE: Python, Leap IDE
 # SOURCE: "Quantum Methods for Sequence Alignment and Metagenomics"
 # URL: https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
 
