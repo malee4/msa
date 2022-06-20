@@ -1,8 +1,10 @@
-# authored by Lindvall, original algorithm accessed at https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
-# no modifications to original algorithm as of June 16, 2022
+# AUTHOR: Oscar Bulancea Lindvall, KTH Royal Institute of Technology
+# CODE VERSION: 2019, last updated locally June 16, 2022
+# LANGUAGE: Python
+# SOURCE: "Quantum Methods for Sequence Alignment and Metagenomics"
+# URL: https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
 
-
-import lindvall
+import Lindvall
 # from data_formats import SeqQuery
 import numpy as np
 import dimod
@@ -15,7 +17,7 @@ from dwave.system.composites import EmbeddingComposite
 samples = 1000
 save_file = "msa_output"
 
-sequences = ["AT", "T", "A", "A"]
+sequences = ["AT", "T", "A", "A"] # put your input here
 simulation = False # flag determining to run simulated or quantum annealer
 
 # rewards and costs (recall this is a minimization function, reward = positive)
@@ -38,7 +40,7 @@ for s1 in range(len(sequences)):
 inserts = 0
 gap_penalty = 0
 params = {"gap_pen": gap_penalty, "extra_inserts": inserts}
-mat, shift, rev_inds = lindvall.get_MSA_qubitmat(sizes, matchings,\
+mat, shift, rev_inds = Lindvall.get_MSA_qubitmat(sizes, matchings,\
 gap_pen=gap_penalty, extra_inserts=inserts)
 
 def mat_to_dimod_format(matrix): 
@@ -55,6 +57,7 @@ def mat_to_dimod_format(matrix):
     return linear, interaction
 
 h, J = mat_to_dimod_format(mat)
+
 if not simulation:
     cont = input("continue: y/n\n")
     if cont != "y":

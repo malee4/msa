@@ -1,5 +1,8 @@
-# authored by Lindvall, original algorithm accessed at https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
-# no modifications to original algorithm as of June 16, 2022
+# AUTHOR: Oscar Bulancea Lindvall, KTH Royal Institute of Technology
+# CODE VERSION: 2019, last updated locally June 16, 2022
+# LANGUAGE: Python
+# SOURCE: "Quantum Methods for Sequence Alignment and Metagenomics"
+# URL: https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
 
 import numpy as np
 from collections import OrderedDict
@@ -65,8 +68,9 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     C= coeffs[1] # order coefficient
 
     def pos2ind(s, n, i):
-        """Return spin index from sequence, element and position indices Index scheme: first N*L spins are 'removal' spins
-                  the following L*N*num_pos spins are location spins
+        """Return spin index from sequence, element and position indices 
+            Index scheme: first N*L spins are 'removal' spins
+            the following L*N*num_pos spins are location spins
         """
         return int((np.sum(sizes)*L)*allow_delete \
             + (np.sum(sizes[:s]) + n)*num_pos + i)
@@ -115,7 +119,11 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
                         w = weights[s1, n1, s2, n2]
                         add_pauli_bool(A*w, (s1, n1, i), (s2, n2, i))
     
-    """ Penalties, pair sum of penalties """
+    """ Penalties version 2 (pair of sum penalties)
+    Pairing wiht gaps
+    H+gap = A*sum_{s1,n1}sum_{s2}sum_i g*x_{s1,n1,i}(1-sum_n2 x_{s2,n2,i})
+    Represents pairing of (s1, n1) at i to nothing in s2
+    """
     if gap_pen != 0:
         for s1 in range(L):
             for n1 in range(sizes[s1]):
@@ -128,7 +136,11 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
                             add_pauli_bool(-w, (s1, n1, i), (s2, n2, i))
 
     """Placement terms
-        Place at only one position
+    Place at only one position
+    H_placement = B*sum_{s,n} (1-sum_i x_{s,n,i})^2
+    = B*n_tot - 2*B*sum_{s,n}sum_i x_{s,n,i} \
+    + sum_{s,n} sum_{i,j} x_{s,n,i}x_{s,n,j}
+    = B*n_tot - B*sum_{s,n}sum_i x_{s,n,i} + B*sum_{s,n}sum_{i!=j} x_{s,n,i}x_{s,n,j} 
     """
     shift += B*n_tot
     for s in range(L):
@@ -143,7 +155,11 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
                         add_pauli_bool(w, (s,n,i))
     
 
-    """ Order terms, with no deletions"""
+    """ Order terms
+    no deletions
+    H_order_no_del = C*sum_{s,n} sum_{i<=j} x_{s,n,j}x_{s,n+1,i} with deletions
+    H_order = C*sum_s sum_{n1<n2}sum_{i<=j} x_{s,n1,j}x_{s,n2,i} 
+    """
     for s in range(L):
         if allow_delete:
             for n1 in range(sizes[s]):
