@@ -6,7 +6,7 @@
 # GITHUB: https://github.com/phglab/ALFATClust
 
 
-from .Constants import *
+from Constants import *
 from Bio import SeqIO
 from collections import namedtuple
 import numpy as np
