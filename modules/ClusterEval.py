@@ -5,13 +5,14 @@
 # URL: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04643-9#ref-CR27
 # GITHUB: https://github.com/phglab/ALFATClust
 
-from Constants import DNA, AA
+from .Constants import DNA, AA
+# import Constants
+# import Utils
 from .Utils import cal_outlier_thres_by_iqr, read_seq_file_for_eval
 from Bio.Align import PairwiseAligner, substitution_matrices
 from multiprocessing import Pool
 from pandas import DataFrame
 import numpy as np
-import os
 
 class ClusterEval:
     _CLUSTER_ID_COL = 'Cluster Id'
