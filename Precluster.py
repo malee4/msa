@@ -39,8 +39,10 @@ class Precluster:
 
         return read_seq_file_for_preclusters(seq_file_path, seq_name_to_precluster_map), np.max(precluster_sizes)
 
+    # 
     @classmethod
     def precluster_seq_file(cls, user_params, seq_file_path, max_seq_len):
+        # create a temporary file
         cls._temp_dir_path = mkdtemp()
 
         seq_db_file_name_prefix = 'seq_db'
