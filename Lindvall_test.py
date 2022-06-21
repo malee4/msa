@@ -9,7 +9,7 @@ import lindvall
 import numpy as np
 import dimod
 import neal
-# import pickle
+import pickle
 
 from dwave.system.samplers import DWaveSampler
 from dwave.system.composites import EmbeddingComposite
