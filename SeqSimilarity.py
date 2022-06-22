@@ -26,6 +26,7 @@ class SeqSimilarity:
 
     @classmethod
     def init(cls, user_params, p_value=0.0001):
+        # if certain parameters are not give, use the default values
         if user_params.kmer_size is None:
             cls._dna_kmer_size = user_params.default_dna_kmer_size
             cls._protein_kmer_size = user_params.default_protein_kmer_size
@@ -40,6 +41,7 @@ class SeqSimilarity:
             cls._dna_sketch_size = user_params.sketch_size
             cls._protein_sketch_size = user_params.sketch_size
 
+        # 
         cls._seed = user_params.seed
         cls._min_shared_hash_ratio = user_params.min_shared_hash_ratio
         cls._max_dist = 1 - user_params.noise_filter_thres
