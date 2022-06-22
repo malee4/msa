@@ -10,6 +10,7 @@ import os
 import re
 import shlex
 import subprocess
+import Mash
 
 class SeqSimilarity:
     _dna_kmer_size = None
@@ -53,26 +54,38 @@ class SeqSimilarity:
     def set_to_run_in_single_thread(cls):
         cls._num_of_threads = 1
 
+    # 
     @classmethod
-    def _parse_mash_output(cls, fid, mash_seq_name_to_seq_id_map, seq_count):
+    # def _parse_mash_output(cls, fid, mash_seq_name_to_seq_id_map, seq_count):
+    def _parse_mash_output(cls, file_path, mash_seq_name_to_seq_id_map, seq_count):
         max_seq_id = seq_count - 1
         global_edge_weight_mtrx = np.zeros((seq_count, seq_count), dtype=np.float32)
-
-        with os.fdopen(fid) as f:
+        i = 0
+        # with os.fdopen(fid) as f:
+        if True: #just for testing purposes
             while True:
+                print(r"line {} reached", i)
+                print(f)
+                i = i + 1
                 line = f.readline()
+                print(r"line {} reached", i)
+                i = i + 1
                 line_fields = line.rstrip().split('\t')
                 seq_name1 = line_fields[0]
                 seq_name2 = line_fields[1]
                 seq_id1 = mash_seq_name_to_seq_id_map[seq_name1]
                 seq_id2 = mash_seq_name_to_seq_id_map[seq_name2]
 
+                # when we have arrived at the end
                 if seq_id1 == max_seq_id and seq_id2 == max_seq_id:
                     break
-
+                print(r"line {} reached", i)
+                i = i + 1
+                # skip comparing sequences that refer to the same object
                 if seq_id1 == seq_id2:
                     continue
-
+                print(r"line {} reached", i)
+                i = i + 1
                 if cls._min_shared_hash_ratio is not None:
                     m = re.match(r'(\d+)/(\d+)', line_fields[4])
                     if m:
@@ -80,9 +93,11 @@ class SeqSimilarity:
                             continue
                     else:
                         continue
-
-                global_edge_weight_mtrx[seq_id1, seq_id2] = 1 - float(line_fields[2])
-
+                print(r"line {} reached", i)
+                i = i + 1
+                global_edge_weight_mtrx[seq_id1, seq_id2] = 1 - float(line_fields[2]) # this turns it into a maximization problem
+                print(r"line {} reached", i)
+                i = i + 1
         return global_edge_weight_mtrx
 
     @classmethod
@@ -90,6 +105,7 @@ class SeqSimilarity:
         if not cls._is_init:
             return None
 
+        # format the input
         mash_command = 'mash dist -C -i -v {} -d {} -p {} {} {}'
         mash_command = mash_command.format(cls._p_value, cls._max_dist, cls._num_of_threads,
                                            seq_file_info.seq_file_path, seq_file_info.seq_file_path)
@@ -102,12 +118,17 @@ class SeqSimilarity:
         if cls._seed is not None:
             mash_command = '{} -S {}'.format(mash_command, cls._seed)
 
-        fr, fw = os.pipe()
+        # returns read, write definitions
+        # fr, fw = os.pipe()
 
-        with subprocess.Popen(args=shlex.split(mash_command), stdout=fw, stderr=subprocess.DEVNULL) as p:
-            global_edge_weight_mtrx = cls._parse_mash_output(fr, seq_file_info.mash_seq_name_to_seq_id_map,
-                                                             seq_file_info.seq_count)
+        # catches any less common cases (documentation: https://docs.python.org/3/library/subprocess.html#subprocess.Popen)
+        #with subprocess.Popen(args=shlex.split(mash_command), stdout=fw, stderr=subprocess.DEVNULL) as p:
+        # global_edge_weight_mtrx = cls._parse_mash_output(fr, seq_file_info.mash_seq_name_to_seq_id_map,
+                                                     # seq_file_info.seq_count)
+        global_edge_weight_mtrx = cls._parse_mash_output(seq_file_info.mash_seq_name_to_seq_id_map,
+                                                     seq_file_info.seq_count)
+        
 
-        os.close(fw)
+        # os.close(fw)
 
         return global_edge_weight_mtrx
