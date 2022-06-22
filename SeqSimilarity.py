@@ -56,7 +56,7 @@ class SeqSimilarity:
 
     # 
     @classmethod
-    def _parse_mash_output(cls, fid, mash_seq_name_to_seq_id_map, seq_count):
+    # def _parse_mash_output(cls, fid, mash_seq_name_to_seq_id_map, seq_count):
     def _parse_mash_output(cls, fid, file_path, mash_seq_name_to_seq_id_map, seq_count):
         max_seq_id = seq_count - 1
         global_edge_weight_mtrx = np.zeros((seq_count, seq_count), dtype=np.float32)
