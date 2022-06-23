@@ -87,7 +87,7 @@ def read_seq_file(seq_file_path, user_params=None):
             if seq_len > max_seq_len:
                 max_seq_len = seq_len
 
-            mash_last_seq_name = _convert_to_mash_seq_name(last_seq_name)
+            mash_last_seq_name = _convert_to_mash_seq_name(last_seq_name).replace(":", "")
             mash_seq_name_to_seq_id_map[mash_last_seq_name] = seq_count
             seq_id_to_seq_name_map[str(seq_count)] = last_seq_name
             seq_count += 1
