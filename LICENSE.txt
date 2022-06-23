@@ -1,0 +1,3 @@
+<insert ALFATClust license>
+
+<insert MASH license>

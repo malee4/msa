@@ -56,16 +56,15 @@ class SeqSimilarity:
 
     # 
     @classmethod
-    # def _parse_mash_output(cls, fid, mash_seq_name_to_seq_id_map, seq_count):
-    def _parse_mash_output(cls, fid, file_path, mash_seq_name_to_seq_id_map, seq_count):
+    def _parse_mash_output(cls, fid, mash_seq_name_to_seq_id_map, seq_count):
         max_seq_id = seq_count - 1
         global_edge_weight_mtrx = np.zeros((seq_count, seq_count), dtype=np.float32)
         i = 0
-        # with os.fdopen(fid) as f:
-        if True: #just for testing purposes
+        with os.fdopen(fid) as f:
+        # if True: #just for testing purposes
             while True:
                 print(r"line {} reached", i)
-                print(f)
+                # print(f)
                 i = i + 1
                 line = f.readline()
                 print(r"line {} reached", i)
@@ -119,15 +118,14 @@ class SeqSimilarity:
             mash_command = '{} -S {}'.format(mash_command, cls._seed)
 
         # returns read, write definitions
-        # fr, fw = os.pipe()
+        fr, fw = os.pipe()
 
         # catches any less common cases (documentation: https://docs.python.org/3/library/subprocess.html#subprocess.Popen)
         with subprocess.Popen(args=shlex.split(mash_command), stdout=fw, stderr=subprocess.DEVNULL) as p:
             global_edge_weight_mtrx = cls._parse_mash_output(fr, seq_file_info.mash_seq_name_to_seq_id_map,
                                                         seq_file_info.seq_count)
-        
-        
+         
 
-        # os.close(fw)
+        os.close(fw)
 
         return global_edge_weight_mtrx

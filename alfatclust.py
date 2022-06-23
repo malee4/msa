@@ -184,7 +184,6 @@ def cluster_seqs_in_precluster(precluster_seq_records):
         list()
 
 
-
 main_dir_path = os.path.dirname(os.path.realpath(__file__))
 config_file_path = os.path.join(main_dir_path, 'settings.cfg')
 
