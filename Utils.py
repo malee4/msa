@@ -141,6 +141,27 @@ def cal_outlier_thres_by_iqr(data_vals):
 
     return np.array([quartile_vals[0] - 1.5 * inter_quartile_range, quartile_vals[1] + 1.5 * inter_quartile_range])
 
+
+def internal_convert_to_seq_clusters(seq_cluster_ptrs, seq_id_to_seq_name_map, centers):
+    output_seq_clusters = dict()
+
+    for cluster_id in range(np.max(seq_cluster_ptrs) + 1):
+        seq_cluster = list()
+        seq_center = ""
+
+        for seq_id in np.argwhere(seq_cluster_ptrs == cluster_id).flatten():
+            if centers.index(seq_id_to_seq_name_map[seq_id]) >= 0:
+                seq_center = seq_id_to_seq_name_map[seq_id]
+            else:
+                seq_cluster.append('{}{}'.format(seq_id_to_seq_name_map[str(seq_id)], os.linesep))
+
+        output_seq_clusters[seq_center] = seq_cluster
+
+    # return a dictionary of the center : corresponding cluster (not inluding the center)
+    return output_seq_clusters
+
+
+
 def convert_to_seq_clusters(seq_cluster_ptrs, seq_id_to_seq_name_map):
     output_seq_clusters = list()
 
