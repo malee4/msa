@@ -26,9 +26,9 @@ import os
 import pandas as pd
 import sys
 
-# file locations
-config_file_path = "settings.cfg"
 
+
+@staticmethod
 def set_and_parse_args(config):
     num_of_threads = os.cpu_count()
     # num_of_threads = len(os.sched_getaffinity(0)) # - due to local environment not supporting sched_getaffinity
@@ -61,6 +61,7 @@ def set_and_parse_args(config):
     return parser.parse_args()
 
 # takes in file path, verifies confiruations
+@staticmethod
 def internal_parse_to_user_params(seq_file_path, config):
     param_error_log = list() # this will be returned alongside any other outputs
 
@@ -96,6 +97,7 @@ def internal_parse_to_user_params(seq_file_path, config):
                       config.default_protein_sketch_size, noise_filter_thres, os.cpu_count()), None
 
 # takes in the parameters from settings.cfg, makes sure params are valid values, returns user params as a named tuple
+@staticmethod
 def parse_to_user_params(args, config):
     param_error_log = list() # this will be returned alongside any other outputs
 
@@ -170,6 +172,7 @@ def parse_to_user_params(args, config):
                       config.default_protein_kmer_size, args.sketch, config.default_dna_sketch_size,
                       config.default_protein_sketch_size, noise_filter_thres, args.thread, args.seed), None
 
+@staticmethod
 def display_user_params(user_params):
     print('---------------------------------------------')
     print('Estimated similarity range = [{}, {}]'.format(user_params.res_param_start, user_params.res_param_end))
@@ -195,6 +198,7 @@ def display_user_params(user_params):
     print('---------------------------------------------')
     print()
 
+@staticmethod
 def cluster_seqs_in_precluster(precluster_seq_records):
     if len(precluster_seq_records) == 1:
         return [['{}{}'.format(precluster_seq_records[0].description, os.linesep)]], None, list()
@@ -219,8 +223,9 @@ def cluster_seqs_in_precluster(precluster_seq_records):
     return convert_to_seq_clusters(seq_cluster_ptrs, seq_file_info.seq_id_to_seq_name_map), cluster_eval_output_df, \
         list()
 
-
+@staticmethod
 def get_clusters_and_centers(seq_file_path):
+    # file locations
     main_dir_path = os.path.dirname(os.path.realpath(__file__))
     config_file_path = os.path.join(main_dir_path, 'settings.cfg')
 
