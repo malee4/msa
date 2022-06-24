@@ -9,13 +9,14 @@
 # as a preprocessing algorithm for Lindvall's annealing MSA algorithm.
 
 # import packages
+from unicodedata import name
 from ClusterEval import *
 from Config import *
 from Constants import *
 from Precluster import *
 from SeqCluster import *
 from SeqSimilarity import *
-from Utils import read_seq_file, convert_to_seq_clusters, get_max_precision
+from Utils import read_seq_file, convert_to_seq_clusters, get_max_precision, internal_convert_to_seq_clusters
 from collections import namedtuple
 from math import ceil
 from multiprocessing import Pool
@@ -58,6 +59,41 @@ def set_and_parse_args(config):
     parser.add_argument('-S', '--seed', type=int, help='Seed value')
 
     return parser.parse_args()
+
+# takes in file path, verifies confiruations
+def internal_parse_to_user_params(seq_file_path, config):
+    param_error_log = list() # this will be returned alongside any other outputs
+
+    UserParams = namedtuple('UserParams', ['res_param_start', 'res_param_end', 'res_param_step_size', 'precision',
+                                           'precluster_thres', 'min_shared_hash_ratio', 'kmer_size',
+                                           'default_dna_kmer_size', 'default_protein_kmer_size', 'sketch_size',
+                                           'default_dna_sketch_size', 'default_protein_sketch_size',
+                                           'noise_filter_thres', 'num_of_threads'])
+    
+    # make sure any configurations are valid
+    if not os.path.isfile(seq_file_path):
+        param_error_log.append('Sequence file \'{}\' does not exist'.format(args.seq_file_path))
+
+    # makes sure the configurations are valid
+    if config.res_param_start > 1 or config.res_param_start <= 0:
+        param_error_log.append('Upper bound for estimated similarity range must be > 0 and <= 1')
+        param_error_log.append('Please check the configuration file')
+
+    if config.precluster_thres <= 0:
+        param_error_log.append('Precluster threshold must be positive integer')
+        param_error_log.append('Please check the configuration file')
+
+    # unlike parse_to_user_params, there will be no args
+    if len(param_error_log) > 0:
+        return None, param_error_log
+    
+    # replace any args with config defaults, assume filter margin =  0.2, args.kmer = 17, sketch = 2000, seed = 0
+    noise_filter_thres = round(max(0, config.res_param_end - config.noise_filter_margin), get_max_precision(config.res_param_end, config.noise_filter_margin))
+    
+    return UserParams(config.res_param_start, config.res_param_end, -1 * config.res_param_step_size, get_max_precision(config.res_param_step_size),
+                      config.precluster_thres,  0.2, 17, config.default_dna_kmer_size,
+                      config.default_protein_kmer_size, 2000, config.default_dna_sketch_size,
+                      config.default_protein_sketch_size, noise_filter_thres, os.cpu_count()), None
 
 # takes in the parameters from settings.cfg, makes sure params are valid values, returns user params as a named tuple
 def parse_to_user_params(args, config):
@@ -184,6 +220,81 @@ def cluster_seqs_in_precluster(precluster_seq_records):
         list()
 
 
+def get_clusters_and_centers(seq_file_path):
+    main_dir_path = os.path.dirname(os.path.realpath(__file__))
+    config_file_path = os.path.join(main_dir_path, 'settings.cfg')
+
+    try:
+        config = Config(config_file_path)
+    except:
+        sys.exit('Configuration file \'{}\' is not set properly'.format(config_file_path))
+
+    temp_seq_file_path = None
+
+    try:
+        args = set_and_parse_args(config)
+        # get the user parameters, error log
+        user_params, param_error_log = internal_parse_to_user_params(seq_file_path, config)
+        # if errors are raised, stop the program
+        if param_error_log is not None:
+            sys.exit(os.linesep.join(param_error_log))
+        
+        display_user_params(user_params)
+
+        SeqSimilarity.init(user_params)
+        SeqCluster.init(user_params)
+
+        print('Validating input sequence file \'{}\'...'.format(seq_file_path))
+        seq_file_info = read_seq_file(seq_file_path, user_params)
+        if seq_file_info.seq_count == 0:
+            sys.exit('No sequence found in \'{}\''.format(seq_file_path))
+
+        if len(seq_file_info.error_log) > 0:
+            sys.exit(os.linesep.join(seq_file_info.error_log))
+
+        cluster_eval_output_df = None
+        output_seq_clusters = list()
+        overall_error_log = list()
+        is_precluster_mode = seq_file_info.seq_count > user_params.precluster_thres
+
+        if is_precluster_mode:
+            print("is precluster mode, inputs not valid")
+            sys.exit()
+        else:
+            print('Estimating pairwise sequence distances...')
+            global_edge_weight_mtrx = SeqSimilarity.get_pairwise_similarity(seq_file_info)
+
+            if args.cluster_eval_csv_file_path is not None:
+                sparse_edge_weight_mtrx = coo_matrix(global_edge_weight_mtrx, shape=global_edge_weight_mtrx.shape)
+            
+            seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
+
+            # KEY DIFFERENCE: find the centers first
+                    
+            # get the centers
+            print("Getting centers...")
+            centers = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
+        
+            # map the centers to clusters (do NOT contain centers)
+            centers_to_clusters_map = internal_convert_to_seq_clusters(seq_cluster_ptrs, seq_file_info.seq_id_to_seq_name_map, centers)
+            
+        print()
+        print('Process completed. No. of sequence clusters = {}'.format(cluster_count))
+    except KeyboardInterrupt:
+        print()
+        print('Process aborted due to keyboard interrupt')
+    except SystemExit as sys_exit:
+        if sys_exit.code != 0:
+            print(sys_exit.code)
+    except:
+        print()
+        print('Process aborted due to error occurred: {}'.format(sys.exc_info()[1]))
+    finally:
+        Precluster.clear_temp_data()
+
+    return centers_to_clusters_map
+
+
 if __name__ == '__main__':
     main_dir_path = os.path.dirname(os.path.realpath(__file__))
     config_file_path = os.path.join(main_dir_path, 'settings.cfg')
@@ -287,11 +398,10 @@ if __name__ == '__main__':
         # get the centers
         print("Getting centers...")
         centers = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
-
         with open(main_dir_path + "/centers.txt", 'w') as f:
             # for cluster_id, center_seq in centers:
-            for key in centers.keys():
-                f.write(centers[key].name + '\n')
+            for item in centers:
+                f.write(item.name + '\n')
 
 
         if cluster_eval_output_df is not None:

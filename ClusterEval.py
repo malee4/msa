@@ -253,13 +253,13 @@ class ClusterEval:
             
         # if both sets are empty, return empty set
         if len(seq_id_to_cluster_id_map) == 0:
-            return dict()
+            return list()
 
         # read the sequences for evaluation
         cluster_to_seq_recs_map = read_seq_file_for_eval(seq_file_path, seq_id_to_cluster_id_map)
 
         # centers 
-        cluster_seq_ids_and_centers = dict()
+        cluster_seq_ids_and_centers = list()
 
         for cluster_id, cluster_seq_recs in cluster_to_seq_recs_map.items():
             # get the center sequence 
@@ -267,7 +267,7 @@ class ClusterEval:
                 center_seq_rec = cls._select_center_seq_rec(cluster_seq_recs, global_edge_weight_mtrx)
             else:
                 center_seq_rec = cls._select_max_len_seq_rec(cluster_seq_recs)
-            cluster_seq_ids_and_centers[cluster_id] = center_seq_rec
+            cluster_seq_ids_and_centers.append(center_seq_rec)
         return cluster_seq_ids_and_centers
 
     @classmethod
