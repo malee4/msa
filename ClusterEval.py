@@ -62,6 +62,11 @@ class ClusterEval:
         max_len_seq_rec = None
         max_seq_len = 0
 
+        # added case for when if only one element, return the sequence
+        if len(cluster_seq_recs) == 1:
+            for seq_rec in cluster_seq_recs:
+                return seq_rec
+
         for seq_rec in cluster_seq_recs:
             seq_len = len(seq_rec.seq)
 
@@ -187,7 +192,6 @@ class ClusterEval:
             long_seq = seq2
             aa_aligner = cls._diff_len_aa_aligner
         else:
-            print("line 190")
             short_seq = seq1
             long_seq = seq2
             aa_aligner = cls._same_len_aa_aligner
@@ -196,7 +200,6 @@ class ClusterEval:
         check_count = 0
 
         for seq_align in aa_aligner.align(short_seq, long_seq):
-            print("line199")
             seq_align_pattern = format(seq_align, 'fasta').split(os.linesep)[1]
             seq_ident = seq_align_pattern.count('|') / len(seq_align_pattern.strip('-'))
 
@@ -235,39 +238,37 @@ class ClusterEval:
 
         return cluster_eval_output_df.sort_index()
 
-    @staticmethod
-    def get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_path):
-        # create a list of the IDs of cluster centers
-        multi_centers = list()
-        single_centers= list()
-        single_center_ids = list()
-        # find clusters that are length > 1
-        seq_id_to_non_singleton_cluster_id_map = dict()
+    @classmethod
+    def get_centers(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_path):
+        # create a list of non-single clusters
+        seq_id_to_cluster_id_map = dict()
 
-        # for every cluster, assign a cluster ID
+        # for every cluster in the range of clusters
         for cluster_id in range(np.max(seq_cluster_ptrs) + 1):
+            # collect ids in array where they are nonzero
             cluster_seq_ids = np.argwhere(seq_cluster_ptrs == cluster_id).flatten()
-            if cluster_seq_ids.size > 1:
-                for seq_id in cluster_seq_ids:
-                    seq_id_to_non_singleton_cluster_id_map[seq_id] = cluster_id
-            elif cluster_seq_ids.size == 1:
-                for seq_id in cluster_seq_ids:
-                    seq_id_to_non_singleton_cluster_id_map[seq_id] = cluster_id
-                    single_center_ids.append(cluster_id)
+            # map all sequences to a sequence ID
+            for seq_id in cluster_seq_ids:
+                seq_id_to_cluster_id_map[seq_id] = cluster_id
+            
+        # if both sets are empty, return empty set
+        if len(seq_id_to_cluster_id_map) == 0:
+            return dict()
 
-        # if there are no singleton elements, return an empty list
-        if len(seq_id_to_non_singleton_cluster_id_map) == 0:
-            return list(), single_centers
+        # read the sequences for evaluation
+        cluster_to_seq_recs_map = read_seq_file_for_eval(seq_file_path, seq_id_to_cluster_id_map)
 
-        cluster_to_seq_recs_map = read_seq_file_for_eval(seq_file_path, seq_id_to_non_singleton_cluster_id_map)
-       
+        # centers 
+        cluster_seq_ids_and_centers = dict()
+
         for cluster_id, cluster_seq_recs in cluster_to_seq_recs_map.items():
-            if single_center_ids.__contains__(cluster_id):
-                single_centers.append(cluster_seq_recs[0].name)
+            # get the center sequence 
+            if len(cluster_seq_recs) > 2:
+                center_seq_rec = cls._select_center_seq_rec(cluster_seq_recs, global_edge_weight_mtrx)
             else:
-                multi_centers.append(cluster_seq_recs[0].name)
-
-        return multi_centers, single_centers
+                center_seq_rec = cls._select_max_len_seq_rec(cluster_seq_recs)
+            cluster_seq_ids_and_centers[cluster_id] = center_seq_rec
+        return cluster_seq_ids_and_centers
 
     @classmethod
     def eval_clusters(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info):
