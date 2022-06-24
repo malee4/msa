@@ -184,132 +184,120 @@ def cluster_seqs_in_precluster(precluster_seq_records):
         list()
 
 
+if __name__ == '__main__':
+    main_dir_path = os.path.dirname(os.path.realpath(__file__))
+    config_file_path = os.path.join(main_dir_path, 'settings.cfg')
 
-main_dir_path = os.path.dirname(os.path.realpath(__file__))
-config_file_path = os.path.join(main_dir_path, 'settings.cfg')
+    try:
+        config = Config(config_file_path)
+    except:
+        sys.exit('Configuration file \'{}\' is not set properly'.format(config_file_path))
 
-try:
-    # this creates an object that will store the settings based on the input file
-    config = Config(config_file_path)
-except:
-    # if the file path is incorrect or the settings.cfg
-    sys.exit('Configuration file \'{}\' is not set properly'.format(config_file_path))
+    temp_seq_file_path = None
 
-temp_seq_file_path = None
+    try:
+        args = set_and_parse_args(config)
+        user_params, param_error_log = parse_to_user_params(args, config)
+        if param_error_log is not None:
+            sys.exit(os.linesep.join(param_error_log))
 
-try:
-    # based on the input 
-    args = set_and_parse_args(config)
-    # check if user params are valid; if yes, return as named tuple
-    user_params, param_error_log = parse_to_user_params(args, config)
-    # if an error is encountered, exit
-    if param_error_log is not None:
-        sys.exit(os.linesep.join(param_error_log))
+        display_user_params(user_params)
 
-    # else show user the input parameters
-    display_user_params(user_params)
+        SeqSimilarity.init(user_params)
+        SeqCluster.init(user_params)
 
-    # set up configurations for finding sequence similarity & clustering
-    SeqSimilarity.init(user_params)
-    SeqCluster.init(user_params)
+        print('Validating input sequence file \'{}\'...'.format(args.seq_file_path))
+        seq_file_info = read_seq_file(args.seq_file_path, user_params)
+        if seq_file_info.seq_count == 0:
+            sys.exit('No sequence found in \'{}\''.format(args.seq_file_path))
 
-    print('Validating input sequence file \'{}\'...'.format(args.seq_file_path))
-    seq_file_info = read_seq_file(args.seq_file_path, user_params)
-    if seq_file_info.seq_count == 0:
-        sys.exit('No sequence found in \'{}\''.format(args.seq_file_path))
+        if len(seq_file_info.error_log) > 0:
+            sys.exit(os.linesep.join(seq_file_info.error_log))
 
-    if len(seq_file_info.error_log) > 0:
-        sys.exit(os.linesep.join(seq_file_info.error_log))
+        cluster_eval_output_df = None
+        output_seq_clusters = list()
+        overall_error_log = list()
+        is_precluster_mode = args.is_precluster or seq_file_info.seq_count > user_params.precluster_thres
 
-    cluster_eval_output_df = None
-    output_seq_clusters = list()
-    overall_error_log = list()
-    is_precluster_mode = args.is_precluster or seq_file_info.seq_count > user_params.precluster_thres
+        if is_precluster_mode:
+            print('Pre-clustering sequences into subsets...')
+            precluster_to_seq_recs_map, max_precluster_size = \
+                Precluster.precluster_seq_file(user_params, args.seq_file_path, seq_file_info.max_seq_len)
+            num_of_preclusters = len(precluster_to_seq_recs_map)
+            print('{} individual subsets to be clustered'.format(num_of_preclusters))
 
-    # from the --precluster help function: "Always pre-cluster sequences into individual subsets for separate clustering"
-    # if pre-cluster has been created
-    if is_precluster_mode:
-        print('Pre-clustering sequences into subsets...')
-            
-        precluster_to_seq_recs_map, max_precluster_size = \
-            Precluster.precluster_seq_file(user_params, args.seq_file_path, seq_file_info.max_seq_len)
-        num_of_preclusters = len(precluster_to_seq_recs_map)
-        print('{} individual subsets to be clustered'.format(num_of_preclusters))
+            if max_precluster_size < user_params.precluster_thres:
+                SeqSimilarity.set_to_run_in_single_thread()
+                num_of_threads_for_main_loop = user_params.num_of_threads
+            else:
+                num_of_threads_for_main_loop = 1
 
-        if max_precluster_size < user_params.precluster_thres:
-            SeqSimilarity.set_to_run_in_single_thread()
-            num_of_threads_for_main_loop = user_params.num_of_threads
+            Precluster.create_temp_dir()
+            SeqCluster.disable_verbose()
+
+            if args.cluster_eval_csv_file_path is not None:
+                ClusterEval.init(config, 1)
+
+            chunk_size = min(ceil(num_of_preclusters / num_of_threads_for_main_loop), 500)
+            last_max_cluster_id = 0
+            process_count = 0
+
+            with Pool(processes=num_of_threads_for_main_loop, maxtasksperchild=40) as pool:
+                for seq_clusters, block_cluster_eval_output_df, error_log in \
+                    pool.imap_unordered(cluster_seqs_in_precluster, precluster_to_seq_recs_map.values(), chunk_size):
+                    output_seq_clusters += seq_clusters
+                    overall_error_log += error_log
+
+                    if block_cluster_eval_output_df is not None:
+                        block_cluster_eval_output_df.index += last_max_cluster_id
+
+                        if cluster_eval_output_df is None:
+                            cluster_eval_output_df = block_cluster_eval_output_df
+                        else:
+                            cluster_eval_output_df = pd.concat([cluster_eval_output_df, block_cluster_eval_output_df])
+
+                    last_max_cluster_id = len(output_seq_clusters)
+                    process_count += 1
+                    print('{} / {} subsets processed'.format(process_count, num_of_preclusters), end='\r')
         else:
-            num_of_threads_for_main_loop = 1
+            print('Estimating pairwise sequence distances...')
+            global_edge_weight_mtrx = SeqSimilarity.get_pairwise_similarity(seq_file_info)
 
-        # create temporary director, attached to class
-        Precluster.create_temp_dir()
-        SeqCluster.disable_verbose()
+            if args.cluster_eval_csv_file_path is not None:
+                sparse_edge_weight_mtrx = coo_matrix(global_edge_weight_mtrx, shape=global_edge_weight_mtrx.shape)
+            # print("line268")
+            seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
+            output_seq_clusters = convert_to_seq_clusters(seq_cluster_ptrs, seq_file_info.seq_id_to_seq_name_map)
+            # print("line271")
+            if args.cluster_eval_csv_file_path is not None:
+                print('Evaluating sequence clusters...')
+                ClusterEval.init(config, user_params.num_of_threads)
+                cluster_eval_output_df = \
+                    ClusterEval.eval_clusters(seq_cluster_ptrs, sparse_edge_weight_mtrx.toarray(), seq_file_info)
 
-        if args.cluster_eval_csv_file_path is not None:
-            ClusterEval.init(config, 1)
+        with open(args.seq_cluster_file_path, 'w') as f_out:
+            cluster_count = 0
 
-        chunk_size = min(ceil(num_of_preclusters / num_of_threads_for_main_loop), 500)
-        last_max_cluster_id = 0
-        process_count = 0
+            for seq_cluster in output_seq_clusters:
+                cluster_count += 1
+                f_out.write('#Cluster {}{}'.format(cluster_count, os.linesep))
+                f_out.writelines(seq_cluster)
 
-        with Pool(processes=num_of_threads_for_main_loop, maxtasksperchild=40) as pool:
-            for seq_clusters, block_cluster_eval_output_df, error_log in \
-                pool.imap_unordered(cluster_seqs_in_precluster, precluster_to_seq_recs_map.values(), chunk_size):
-                output_seq_clusters += seq_clusters
-                overall_error_log += error_log
-
-                if block_cluster_eval_output_df is not None:
-                    block_cluster_eval_output_df.index += last_max_cluster_id
-
-                    if cluster_eval_output_df is None:
-                        cluster_eval_output_df = block_cluster_eval_output_df
-                    else:
-                        cluster_eval_output_df = pd.concat([cluster_eval_output_df, block_cluster_eval_output_df])
-
-                last_max_cluster_id = len(output_seq_clusters)
-                process_count += 1
-                print('{} / {} subsets processed'.format(process_count, num_of_preclusters), end='\r')
-    # else create matrix of pairwise sequence distances
-    else:
-        # the relative weights
-        print('Estimating pairwise sequence distances...')
-        global_edge_weight_mtrx = SeqSimilarity.get_pairwise_similarity(seq_file_info)
-        # if cluster_val_csv_file_path is given
-        if args.cluster_eval_csv_file_path is not None:
-            sparse_edge_weight_mtrx = coo_matrix(global_edge_weight_mtrx, shape=global_edge_weight_mtrx.shape)
-
-        seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
-        output_seq_clusters = convert_to_seq_clusters(seq_cluster_ptrs, seq_file_info.seq_id_to_seq_name_map)
-
-        if args.cluster_eval_csv_file_path is not None:
-            print('Evaluating sequence clusters...')
-            ClusterEval.init(config, user_params.num_of_threads)
-            cluster_eval_output_df = \
-                ClusterEval.eval_clusters(seq_cluster_ptrs, sparse_edge_weight_mtrx.toarray(), seq_file_info)
-
-    with open(args.seq_cluster_file_path, 'w') as f_out:
-        cluster_count = 0
-
-        for seq_cluster in output_seq_clusters:
-            cluster_count += 1
-            f_out.write('#Cluster {}{}'.format(cluster_count, os.linesep))
-            f_out.writelines(seq_cluster)
-
-    if cluster_eval_output_df is not None:
-        cluster_eval_output_df.to_csv(args.cluster_eval_csv_file_path)
-
-    print()
-    print('Process completed. No. of sequence clusters = {}'.format(cluster_count))
-# cases that end the process
-except KeyboardInterrupt:
-    print()
-    print('Process aborted due to keyboard interrupt')
-except SystemExit as sys_exit:
-    if sys_exit.code != 0:
-        print(sys_exit.code)
-except:
-    print()
-    print('Process aborted due to error occurred: {}'.format(sys.exc_info()[1]))
-finally:
-    Precluster.clear_temp_data()
+        if cluster_eval_output_df is not None:
+            cluster_eval_output_df.to_csv(args.cluster_eval_csv_file_path)
+        
+        multi_centers, single_centers = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
+        
+        print()
+        print('Process completed. No. of sequence clusters = {}'.format(cluster_count))
+    except KeyboardInterrupt:
+        print()
+        print('Process aborted due to keyboard interrupt')
+    except SystemExit as sys_exit:
+        if sys_exit.code != 0:
+            print(sys_exit.code)
+    except:
+        print()
+        print('Process aborted due to error occurred: {}'.format(sys.exc_info()[1]))
+    finally:
+        Precluster.clear_temp_data()
