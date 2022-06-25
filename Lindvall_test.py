@@ -40,7 +40,7 @@ for s1 in range(len(sequences)):
 inserts = 0
 gap_penalty = 0
 params = {"gap_pen": gap_penalty, "extra_inserts": inserts}
-mat, shift, rev_inds = Lindvall.get_MSA_qubitmat(sizes, matchings,\
+mat, shift, rev_inds = lindvall.get_MSA_qubitmat(sizes, matchings,\
 gap_pen=gap_penalty, extra_inserts=inserts)
 
 def mat_to_dimod_format(matrix): 
@@ -70,3 +70,4 @@ else:
     solver = EmbeddingComposite(DWaveSampler())
 
 response = solver.sample(bqm, num_reads = samples)
+print(response)
