@@ -4,7 +4,7 @@
 # SOURCE: "Clustering biological sequences with dynamic sequence similarity threshold"
 # URL: https://doi.org/10.1186/s12859-022-04643-9
 
-from modules.Utils import read_seq_file_for_preclusters
+from Utils import read_seq_file_for_preclusters
 from Bio import SeqIO
 from shutil import rmtree
 from tempfile import mkdtemp, mkstemp

@@ -1,2 +1,0 @@
-GQ343019||CblA-1_beta-lactamase||mixed_culture_bacterium_AX_gF3SD01_15|133-1023|891|complete
-HQ845196|blaSHV-52|SHV-52_beta-lactamase||Klebsiella_pneumoniae|1-861|861|complete
