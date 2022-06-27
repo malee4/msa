@@ -4,7 +4,7 @@
 # SOURCE: "Clustering biological sequences with dynamic sequence similarity threshold"
 # URL: https://doi.org/10.1186/s12859-022-04643-9
 
-from Constants import AA
+from modules.Constants import AA
 import numpy as np
 import os
 import re
@@ -118,7 +118,8 @@ class SeqSimilarity:
 
         if cls._seed is not None:
             mash_command = '{} -S {}'.format(mash_command, cls._seed)
-
+        
+        print("Mash commands prepared")
         # print(mash_command)
         # returns read, write definitions
         fr, fw = os.pipe()

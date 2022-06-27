@@ -4,8 +4,8 @@
 # SOURCE: "Clustering biological sequences with dynamic sequence similarity threshold"
 # URL: https://doi.org/10.1186/s12859-022-04643-9
 
-from Constants import DNA, AA
-from Utils import cal_outlier_thres_by_iqr, read_seq_file_for_eval
+from modules.Constants import DNA, AA
+from modules.Utils import cal_outlier_thres_by_iqr, read_seq_file_for_eval
 from Bio.Align import PairwiseAligner, substitution_matrices
 from multiprocessing import Pool
 from pandas import DataFrame
@@ -258,17 +258,18 @@ class ClusterEval:
         # read the sequences for evaluation
         cluster_to_seq_recs_map = read_seq_file_for_eval(seq_file_path, seq_id_to_cluster_id_map)
 
-        # centers 
-        cluster_seq_ids_and_centers = list()
+        # dictionary of tuples containing (SeqRecord of center, list of items in cluster)
+        cluster_ids_to_centers_and_cluster_seqs = dict()
 
         for cluster_id, cluster_seq_recs in cluster_to_seq_recs_map.items():
+
             # get the center sequence 
             if len(cluster_seq_recs) > 2:
                 center_seq_rec = cls._select_center_seq_rec(cluster_seq_recs, global_edge_weight_mtrx)
             else:
                 center_seq_rec = cls._select_max_len_seq_rec(cluster_seq_recs)
-            cluster_seq_ids_and_centers.append(center_seq_rec)
-        return cluster_seq_ids_and_centers
+            cluster_ids_to_centers_and_cluster_seqs[cluster_id] = (center_seq_rec, cluster_seq_recs)
+        return cluster_ids_to_centers_and_cluster_seqs
 
     @classmethod
     def eval_clusters(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info):
