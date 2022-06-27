@@ -306,6 +306,9 @@ class SeqCluster:
             if cls._is_verbose:
                 proc_msg = '{} clusters obtained at average estimated similarity {}'
                 print(proc_msg.format(np.max(last_seq_cluster_ptrs) + 1, res_param))
+            
+            print(np.max(last_seq_cluster_ptrs) == 0 )
+            print(np.all(np.triu(global_edge_weight_mtrx, k=1) <= 0))
 
             if np.max(last_seq_cluster_ptrs) == 0 or np.all(np.triu(global_edge_weight_mtrx, k=1) <= 0):
                 if cls._is_verbose:

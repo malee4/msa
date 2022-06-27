@@ -4,7 +4,7 @@
 # SOURCE: "Quantum Methods for Sequence Alignment and Metagenomics"
 # URL: https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
 
-import lindvall
+import modules.lindvall as lindvall
 # from data_formats import SeqQuery
 import numpy as np
 import dimod

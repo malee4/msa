@@ -10,13 +10,13 @@
 
 # import packages
 from unicodedata import name
-from ClusterEval import *
-from Config import *
-from Constants import *
-from Precluster import *
-from SeqCluster import *
-from SeqSimilarity import *
-from Utils import read_seq_file, convert_to_seq_clusters, get_max_precision, internal_convert_to_seq_clusters
+from modules.ClusterEval import *
+from modules.Config import *
+from modules.Constants import *
+from modules.Precluster import *
+from modules.SeqCluster import *
+from modules.SeqSimilarity import *
+from modules.Utils import read_seq_file, convert_to_seq_clusters, get_max_precision, internal_convert_to_seq_clusters
 from collections import namedtuple
 from math import ceil
 from multiprocessing import Pool
@@ -28,15 +28,15 @@ import sys
 
 
 
-
 def set_and_parse_args(config):
     num_of_threads = os.cpu_count()
     # num_of_threads = len(os.sched_getaffinity(0)) # - due to local environment not supporting sched_getaffinity
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', action='store', dest='seq_file_path', required=True,
+    # CHANGED: require -i and -o to false
+    parser.add_argument('-i', '--input', action='store', dest='seq_file_path', required=False,
                         help='DNA/Protein sequence FASTA file path')
-    parser.add_argument('-o', '--output', action='store', dest='seq_cluster_file_path', required=True,
+    parser.add_argument('-o', '--output', action='store', dest='seq_cluster_file_path', required=False,
                         help='Output cluster file path')
     parser.add_argument('-e', '--evaluate', action='store', dest='cluster_eval_csv_file_path',
                         help='Sequence cluster evaluation output CSV file path')
@@ -60,7 +60,7 @@ def set_and_parse_args(config):
 
     return parser.parse_args()
 
-# takes in file path, verifies confiruations
+# takes in file path, verifies configurations
 
 def internal_parse_to_user_params(seq_file_path, config):
     param_error_log = list() # this will be returned alongside any other outputs
@@ -69,7 +69,7 @@ def internal_parse_to_user_params(seq_file_path, config):
                                            'precluster_thres', 'min_shared_hash_ratio', 'kmer_size',
                                            'default_dna_kmer_size', 'default_protein_kmer_size', 'sketch_size',
                                            'default_dna_sketch_size', 'default_protein_sketch_size',
-                                           'noise_filter_thres', 'num_of_threads'])
+                                           'noise_filter_thres', 'num_of_threads', 'seed'])
     
     # make sure any configurations are valid
     if not os.path.isfile(seq_file_path):
@@ -94,7 +94,7 @@ def internal_parse_to_user_params(seq_file_path, config):
     return UserParams(config.res_param_start, config.res_param_end, -1 * config.res_param_step_size, get_max_precision(config.res_param_step_size),
                       config.precluster_thres,  0.2, 17, config.default_dna_kmer_size,
                       config.default_protein_kmer_size, 2000, config.default_dna_sketch_size,
-                      config.default_protein_sketch_size, noise_filter_thres, os.cpu_count()), None
+                      config.default_protein_sketch_size, noise_filter_thres, os.cpu_count(), None), None
 
 # takes in the parameters from settings.cfg, makes sure params are valid values, returns user params as a named tuple
 
@@ -225,6 +225,7 @@ def cluster_seqs_in_precluster(precluster_seq_records):
 
 
 def get_clusters_and_centers(seq_file_path):
+    cluster_ids_to_centers_and_cluster_seqs = dict()
     # file locations
     main_dir_path = os.path.dirname(os.path.realpath(__file__))
     config_file_path = os.path.join(main_dir_path, 'settings.cfg')
@@ -268,23 +269,19 @@ def get_clusters_and_centers(seq_file_path):
         else:
             print('Estimating pairwise sequence distances...')
             global_edge_weight_mtrx = SeqSimilarity.get_pairwise_similarity(seq_file_info)
-
-            if args.cluster_eval_csv_file_path is not None:
-                sparse_edge_weight_mtrx = coo_matrix(global_edge_weight_mtrx, shape=global_edge_weight_mtrx.shape)
+            print('Global edge weight matrix determined...')
             
             seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
+            print('Raw sequence clusters found...')
 
             # KEY DIFFERENCE: find the centers first
                     
             # get the centers
-            print("Getting centers...")
-            centers = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
-        
-            # map the centers to clusters (do NOT contain centers)
-            centers_to_clusters_map = internal_convert_to_seq_clusters(seq_cluster_ptrs, seq_file_info.seq_id_to_seq_name_map, centers)
-            
+            cluster_ids_to_centers_and_cluster_seqs = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
+            print("Sequence centers retrieved...")
+
         print()
-        print('Process completed. No. of sequence clusters = {}'.format(cluster_count))
+        print('Process completed. No. of sequence clusters = {}'.format(len(cluster_ids_to_centers_and_cluster_seqs)))
     except KeyboardInterrupt:
         print()
         print('Process aborted due to keyboard interrupt')
@@ -297,7 +294,7 @@ def get_clusters_and_centers(seq_file_path):
     finally:
         Precluster.clear_temp_data()
 
-    return centers_to_clusters_map
+    return cluster_ids_to_centers_and_cluster_seqs
 
 
 if __name__ == '__main__':
