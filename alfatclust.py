@@ -10,13 +10,13 @@
 
 # import packages
 from unicodedata import name
-from modules.ClusterEval import *
-from modules.Config import *
-from modules.Constants import *
-from modules.Precluster import *
-from modules.SeqCluster import *
-from modules.SeqSimilarity import *
-from modules.Utils import read_seq_file, convert_to_seq_clusters, get_max_precision, internal_convert_to_seq_clusters
+from ClusterEval import *
+from Config import *
+from Constants import *
+from Precluster import *
+from SeqCluster import *
+from SeqSimilarity import *
+from Utils import read_seq_file, convert_to_seq_clusters, get_max_precision #, internal_convert_to_seq_clusters
 from collections import namedtuple
 from math import ceil
 from multiprocessing import Pool
@@ -92,8 +92,8 @@ def internal_parse_to_user_params(seq_file_path, config):
     noise_filter_thres = round(max(0, config.res_param_end - config.noise_filter_margin), get_max_precision(config.res_param_end, config.noise_filter_margin))
     
     return UserParams(config.res_param_start, config.res_param_end, -1 * config.res_param_step_size, get_max_precision(config.res_param_step_size),
-                      config.precluster_thres,  0.2, 17, config.default_dna_kmer_size,
-                      config.default_protein_kmer_size, 2000, config.default_dna_sketch_size,
+                      config.precluster_thres,  None, None, config.default_dna_kmer_size,
+                      config.default_protein_kmer_size, None, config.default_dna_sketch_size,
                       config.default_protein_sketch_size, noise_filter_thres, os.cpu_count(), None), None
 
 # takes in the parameters from settings.cfg, makes sure params are valid values, returns user params as a named tuple
@@ -224,7 +224,7 @@ def cluster_seqs_in_precluster(precluster_seq_records):
         list()
 
 
-def get_clusters_and_centers(seq_file_path):
+def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
     cluster_ids_to_centers_and_cluster_seqs = dict()
     # file locations
     main_dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -264,8 +264,42 @@ def get_clusters_and_centers(seq_file_path):
         is_precluster_mode = seq_file_info.seq_count > user_params.precluster_thres
 
         if is_precluster_mode:
-            print("is precluster mode, inputs not valid")
-            sys.exit()
+            print('Pre-clustering sequences into subsets...')
+            precluster_to_seq_recs_map, max_precluster_size = \
+                Precluster.precluster_seq_file(user_params, seq_file_path, seq_file_info.max_seq_len)
+            num_of_preclusters = len(precluster_to_seq_recs_map)
+            print('{} individual subsets to be clustered'.format(num_of_preclusters))
+
+            if max_precluster_size < user_params.precluster_thres:
+                SeqSimilarity.set_to_run_in_single_thread()
+                num_of_threads_for_main_loop = user_params.num_of_threads
+            else:
+                num_of_threads_for_main_loop = 1
+
+            Precluster.create_temp_dir()
+            SeqCluster.disable_verbose()
+
+            chunk_size = min(ceil(num_of_preclusters / num_of_threads_for_main_loop), 500)
+            last_max_cluster_id = 0
+            process_count = 0
+
+            with Pool(processes=num_of_threads_for_main_loop, maxtasksperchild=40) as pool:
+                for seq_clusters, block_cluster_eval_output_df, error_log in \
+                    pool.imap_unordered(cluster_seqs_in_precluster, precluster_to_seq_recs_map.values(), chunk_size):
+                    output_seq_clusters += seq_clusters
+                    overall_error_log += error_log
+
+                    if block_cluster_eval_output_df is not None:
+                        block_cluster_eval_output_df.index += last_max_cluster_id
+
+                        if cluster_eval_output_df is None:
+                            cluster_eval_output_df = block_cluster_eval_output_df
+                        else:
+                            cluster_eval_output_df = pd.concat([cluster_eval_output_df, block_cluster_eval_output_df])
+
+                    last_max_cluster_id = len(output_seq_clusters)
+                    process_count += 1
+                    print('{} / {} subsets processed'.format(process_count, num_of_preclusters), end='\r')
         else:
             print('Estimating pairwise sequence distances...')
             global_edge_weight_mtrx = SeqSimilarity.get_pairwise_similarity(seq_file_info)
@@ -277,8 +311,9 @@ def get_clusters_and_centers(seq_file_path):
             # KEY DIFFERENCE: find the centers first
                     
             # get the centers
-            cluster_ids_to_centers_and_cluster_seqs = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
+            cluster_ids_to_centers_and_cluster_seqs, count = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
             print("Sequence centers retrieved...")
+            print("Singles Count = " + str(count))
 
         print()
         print('Process completed. No. of sequence clusters = {}'.format(len(cluster_ids_to_centers_and_cluster_seqs)))
@@ -397,13 +432,13 @@ if __name__ == '__main__':
                 f_out.write('#Cluster {}{}'.format(cluster_count, os.linesep))
                 f_out.writelines(seq_cluster)
 
-        # get the centers
-        print("Getting centers...")
-        centers = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
-        with open(main_dir_path + "/centers.txt", 'w') as f:
-            # for cluster_id, center_seq in centers:
-            for item in centers:
-                f.write(item.name + '\n')
+        # # get the centers
+        # print("Getting centers...")
+        # centers = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
+        # with open(main_dir_path + "/centers.txt", 'w') as f:
+        #     # for cluster_id, center_seq in centers:
+        #     for item in centers:
+        #         f.write(item.name + '\n')
 
 
         if cluster_eval_output_df is not None:

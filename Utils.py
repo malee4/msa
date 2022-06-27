@@ -4,7 +4,7 @@
 # SOURCE: "Clustering biological sequences with dynamic sequence similarity threshold"
 # URL: https://doi.org/10.1186/s12859-022-04643-9
 
-from modules.Constants import *
+from Constants import *
 from Bio import SeqIO
 from collections import namedtuple
 import numpy as np
@@ -142,46 +142,46 @@ def cal_outlier_thres_by_iqr(data_vals):
     return np.array([quartile_vals[0] - 1.5 * inter_quartile_range, quartile_vals[1] + 1.5 * inter_quartile_range])
 
 
-def internal_convert_to_seq_clusters(seq_cluster_ptrs, seq_id_to_seq_name_map, centers):
-    print("Convert to Sequence Clusters...")
-    output_seq_clusters = dict()
+# def internal_convert_to_seq_clusters(seq_cluster_ptrs, seq_id_to_seq_name_map, centers):
+#     print("Convert to Sequence Clusters...")
+#     output_seq_clusters = dict()
 
-    # print the keys within the map
-    # map_keys = seq_id_to_seq_name_map.keys()
-    # print(type(map_keys))
-    # for item in map_keys:
-    #     print(type(item))
+#     # print the keys within the map
+#     # map_keys = seq_id_to_seq_name_map.keys()
+#     # print(type(map_keys))
+#     # for item in map_keys:
+#     #     print(type(item))
 
-    # print details about centers
-    # print(type(centers))
-    # print(len(centers))
-    # for item in centers:
-    #     print(item)
-    #     print(type(item))
+#     # print details about centers
+#     # print(type(centers))
+#     # print(len(centers))
+#     # for item in centers:
+#     #     print(item)
+#     #     print(type(item))
 
-    for cluster_id in range(np.max(seq_cluster_ptrs) + 1):
-        seq_cluster = list()
-        seq_center = ""
+#     for cluster_id in range(np.max(seq_cluster_ptrs) + 1):
+#         seq_cluster = list()
+#         seq_center = ""
 
-        # print("this is np.argwhere")
-        # print(np.argwhere(seq_cluster_ptrs == cluster_id).flatten())
-        # print(type(np.argwhere(seq_cluster_ptrs == cluster_id).flatten()))
-        # print(type(np.argwhere(seq_cluster_ptrs == cluster_id).flatten()[0]))
-        for seq_id in np.argwhere(seq_cluster_ptrs == cluster_id).flatten():
-            print("in for loop")
-            # print(seq_id_to_seq_name_map[str(seq_id)])
-            if seq_id_to_seq_name_map[str(seq_id)] in centers:
-                print("line 155")
-                seq_center = seq_id_to_seq_name_map[str(seq_id)]
-            else:
-                print("line 158")
-                seq_cluster.append('{}{}'.format(seq_id_to_seq_name_map[str(seq_id)], os.linesep))
+#         # print("this is np.argwhere")
+#         # print(np.argwhere(seq_cluster_ptrs == cluster_id).flatten())
+#         # print(type(np.argwhere(seq_cluster_ptrs == cluster_id).flatten()))
+#         # print(type(np.argwhere(seq_cluster_ptrs == cluster_id).flatten()[0]))
+#         for seq_id in np.argwhere(seq_cluster_ptrs == cluster_id).flatten():
+#             print("in for loop")
+#             # print(seq_id_to_seq_name_map[str(seq_id)])
+#             if seq_id_to_seq_name_map[str(seq_id)] in centers:
+#                 print("line 155")
+#                 seq_center = seq_id_to_seq_name_map[str(seq_id)]
+#             else:
+#                 print("line 158")
+#                 seq_cluster.append('{}{}'.format(seq_id_to_seq_name_map[str(seq_id)], os.linesep))
         
-        print("ended iteration in for loop")
-        output_seq_clusters[seq_center] = seq_cluster
-    print("Returning output_seq_clusters")
-    # return a dictionary of the center : corresponding cluster (not including the center)
-    return output_seq_clusters
+#         print("ended iteration in for loop")
+#         output_seq_clusters[seq_center] = seq_cluster
+#     print("Returning output_seq_clusters")
+#     # return a dictionary of the center : corresponding cluster (not including the center)
+#     return output_seq_clusters
 
 
 
