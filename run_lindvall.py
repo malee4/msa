@@ -37,9 +37,11 @@ def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_c
     # if an old_center is provided, append to the sequence_string_set
     if old_center:
         sequence_string_set = [old_center] + sequence_string_set
-    # print(sequence_string_set)
+
     # quantum spin column version
     sizes = [len(sequence_string_set[i]) for i in range(len(sequence_string_set))]
+    print(sequence_string_set)
+    print(sizes)
     # calc weights for matching
     matchings = np.zeros((len(sequence_string_set), max(sizes), len(sequence_string_set), max(sizes)))
     for s1 in range(len(sequence_string_set)):
@@ -62,15 +64,16 @@ def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_c
         cont = input("Continue with processing on annealer? y/n\n")
         if cont != "y":
             exit()
-
+    
     bqm = dimod.BinaryQuadraticModel(h, J, shift, dimod.BINARY)
-    print("Running annealer...")
+    print("Model formed")
     if simulation:
+        print("Solver set-up for simulation")
         solver = neal.SimulatedAnnealingSampler()
     else:
+        print("Solver set-up for QC")
         solver = EmbeddingComposite(DWaveSampler())
     
     response = solver.sample(bqm, num_reads = samples)
-    print("Response received")
     return response
 
