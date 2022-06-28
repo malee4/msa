@@ -148,7 +148,7 @@ if __name__ == '__main__':
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
         print("Length of string set: " + str(len(sequence_string_set)))
-        results = run_lindvall(sequence_string_set, old_center)
+        results = run_lindvall(sequence_string_set, old_center, simulation=True)
         print(results) # for testing purposes
 
         # gets the lowest energy solution, converts to dataframe
