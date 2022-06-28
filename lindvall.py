@@ -52,7 +52,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
         sum_0_to_n = lambda x: x*(x**2-1)/3
         max_penalty = (np.max(sizes) + extra_inserts)*sum_0_to_n(len(sizes))*match_max 
         coeffs = [1, max_penalty]
-        print("max_penalty 1=", max_penalty)
+        print("max_penalty 1 =", max_penalty)
         """
         More tight penalty, given by math this time
         P = min(-N*max(2g - w) - L, L + N*min(w - 2g))
@@ -61,7 +61,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
         max_val = np.amax(shifted_weights, axis=(0,1,2,3))
         min_val = np.amin(-shifted_weights, axis=(0,1,2,3))
         max_penalty = np.abs(min([-n_tot*max_val - gap_pen*L, gap_pen*L + n_tot*min_val])) 
-        print("max_penalty 2=", max_penalty)
+        print("max_penalty 2 =", max_penalty)
         coeffs = [1, max_penalty]
 
     A= coeffs[0] # cost function coefficient
@@ -111,12 +111,13 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     Matching at same position
     H_matching = A*sum_{s1,s2} sum_{n1,n2} sum_i w_{s1,s2,n1,n2} * x_{s1,n1,i}*x_{s2,n2,i}
     """
+    print("Calculating cost function")
     for s1 in range(L):
         for s2 in range(s1+1,L):
             for n1 in range(sizes[s1]):
                 for n2 in range(sizes[s2]):
                     for i in range(num_pos):
-                        # matching cost
+                        # matching cost                
                         w = weights[s1, n1, s2, n2]
                         add_pauli_bool(A*w, (s1, n1, i), (s2, n2, i))
     
@@ -125,6 +126,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     H+gap = A*sum_{s1,n1}sum_{s2}sum_i g*x_{s1,n1,i}(1-sum_n2 x_{s2,n2,i})
     Represents pairing of (s1, n1) at i to nothing in s2
     """
+    print("Penalties version 2")
     if gap_pen != 0:
         for s1 in range(L):
             for n1 in range(sizes[s1]):
@@ -143,6 +145,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     + sum_{s,n} sum_{i,j} x_{s,n,i}x_{s,n,j}
     = B*n_tot - B*sum_{s,n}sum_i x_{s,n,i} + B*sum_{s,n}sum_{i!=j} x_{s,n,i}x_{s,n,j} 
     """
+    print("Placement terms")
     shift += B*n_tot
     for s in range(L):
         for n in range(sizes[s]):
@@ -161,6 +164,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     H_order_no_del = C*sum_{s,n} sum_{i<=j} x_{s,n,j}x_{s,n+1,i} with deletions
     H_order = C*sum_s sum_{n1<n2}sum_{i<=j} x_{s,n1,j}x_{s,n2,i} 
     """
+    print("Ordering terms")
     for s in range(L):
         if allow_delete:
             for n1 in range(sizes[s]):
