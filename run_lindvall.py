@@ -35,9 +35,9 @@ Simulation: flag determining to run simulated or quantum annealer
 """
 def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_cost = -1, mismatch_cost = 1, simulation = False): 
     # if an old_center is provided, append to the sequence_string_set
-    if not old_center:
+    if old_center:
         sequence_string_set = [old_center] + sequence_string_set
-    
+    # print(sequence_string_set)
     # quantum spin column version
     sizes = [len(sequence_string_set[i]) for i in range(len(sequence_string_set))]
     # calc weights for matching
@@ -64,12 +64,13 @@ def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_c
             exit()
 
     bqm = dimod.BinaryQuadraticModel(h, J, shift, dimod.BINARY)
+    print("Running annealer...")
     if simulation:
         solver = neal.SimulatedAnnealingSampler()
     else:
         solver = EmbeddingComposite(DWaveSampler())
     
     response = solver.sample(bqm, num_reads = samples)
-    
+    print("Response received")
     return response
 
