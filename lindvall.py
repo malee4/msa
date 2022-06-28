@@ -6,6 +6,7 @@
 
 import numpy as np
 from collections import OrderedDict
+
 def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=False, coeffs=None): 
     """Generate Hamiltonian for Multiple Sequence Alignment (MSA) column formulation,
     as minimization problem.
@@ -120,7 +121,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
                         add_pauli_bool(A*w, (s1, n1, i), (s2, n2, i))
     
     """ Penalties version 2 (pair of sum penalties)
-    Pairing wiht gaps
+    Pairing with gaps
     H+gap = A*sum_{s1,n1}sum_{s2}sum_i g*x_{s1,n1,i}(1-sum_n2 x_{s2,n2,i})
     Represents pairing of (s1, n1) at i to nothing in s2
     """

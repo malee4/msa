@@ -33,16 +33,20 @@ Samples: Number of samples taken on annealer
 match_cost and mismatch_cost: Weight for matching or mismatching base. Rewards and costs (recall this is a minimization function, reward = positive)
 Simulation: flag determining to run simulated or quantum annealer
 """
-def run_lindvall(sequence_string_set, old_center = "", samples = 1000, match_cost = -1, mismatch_cost = 1, simulation = False): 
+def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_cost = -1, mismatch_cost = 1, simulation = False): 
+    # if an old_center is provided, append to the sequence_string_set
+    if not old_center:
+        sequence_string_set = [old_center] + sequence_string_set
+    
     # quantum spin column version
-    sizes = [len(sequences[i]) for i in range(len(sequences))]
+    sizes = [len(sequence_string_set[i]) for i in range(len(sequence_string_set))]
     # calc weights for matching
-    matchings = np.zeros((len(sequences), max(sizes), len(sequences), max(sizes)))
-    for s1 in range(len(sequences)):
-        for s2 in range(len(sequences)):
+    matchings = np.zeros((len(sequence_string_set), max(sizes), len(sequence_string_set), max(sizes)))
+    for s1 in range(len(sequence_string_set)):
+        for s2 in range(len(sequence_string_set)):
             for n1 in range(sizes[1]):
                 for n2 in range(sizes[s2]):
-                    if sequences[s1][n1] == sequences[s2][n2]:
+                    if sequence_string_set[s1][n1] == sequence_string_set[s2][n2]:
                         matchings[s1, n1, s2, n2] = match_cost
                     else:
                         matchings[s1, n1, s2, n2] = mismatch_cost
@@ -66,7 +70,6 @@ def run_lindvall(sequence_string_set, old_center = "", samples = 1000, match_cos
         solver = EmbeddingComposite(DWaveSampler())
     
     response = solver.sample(bqm, num_reads = samples)
+    
     return response
 
-def interpret_response(response):
-    return
