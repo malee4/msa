@@ -413,10 +413,10 @@ if __name__ == '__main__':
 
             if args.cluster_eval_csv_file_path is not None:
                 sparse_edge_weight_mtrx = coo_matrix(global_edge_weight_mtrx, shape=global_edge_weight_mtrx.shape)
-            # print("line268")
+            
             seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
             output_seq_clusters = convert_to_seq_clusters(seq_cluster_ptrs, seq_file_info.seq_id_to_seq_name_map)
-            # print("line271")
+            
             if args.cluster_eval_csv_file_path is not None:
                 print('Evaluating sequence clusters...')
                 ClusterEval.init(config, user_params.num_of_threads)
