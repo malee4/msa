@@ -182,8 +182,24 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
 
     return spin_mat, shift, rev_ind_scheme
 
-def get_alignment_string(sequences, gaps, positions):
+def get_positions(string_size, sequence_solutions):
+    # determine number of elements per string sequence
+    iterations = int((len(sequence_solutions)) / string_size)
+
+    # split into positions
+    positions = list()
+    for i in range(iterations):
+        positions = positions + [(i, (sequence_solutions[i * string_size], sequence_solutions[(i + 1) * string_size]))]
+    return positions
+
+def get_alignment_string(sequences, gaps, sequence_solutions):
+    # group positions based on sequence
     string_size = max([len(s) for s in sequences]) + gaps
+    # sort positions
+    positions = get_positions(string_size, sequence_solutions)
+    
+    # position[([sequence, position],value)]
+
     align_strings = [["-" for i in range(string_size)] for i in range(len(sequences))]
     for (key, value) in positions.items():
         align_strings[key[0]][value] = sequences[key[0]][key[1]]
