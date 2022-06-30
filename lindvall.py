@@ -52,7 +52,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
         sum_0_to_n = lambda x: x*(x**2-1)/3
         max_penalty = (np.max(sizes) + extra_inserts)*sum_0_to_n(len(sizes))*match_max 
         coeffs = [1, max_penalty]
-        print("max_penalty 1 =", max_penalty)
+        print("max_penalty 1 = ", max_penalty)
         """
         More tight penalty, given by math this time
         P = min(-N*max(2g - w) - L, L + N*min(w - 2g))
@@ -61,7 +61,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
         max_val = np.amax(shifted_weights, axis=(0,1,2,3))
         min_val = np.amin(-shifted_weights, axis=(0,1,2,3))
         max_penalty = np.abs(min([-n_tot*max_val - gap_pen*L, gap_pen*L + n_tot*min_val])) 
-        print("max_penalty 2 =", max_penalty)
+        print("max_penalty 2 = ", max_penalty)
         coeffs = [1, max_penalty]
 
     A= coeffs[0] # cost function coefficient
@@ -182,26 +182,40 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
 
     return spin_mat, shift, rev_ind_scheme
 
-def get_positions(string_size, sequence_solutions):
-    # determine number of elements per string sequence
-    iterations = int((len(sequence_solutions)) / string_size)
-
+def get_positions(string_size, sequence_string_set, positions):
+    count = 0
     # split into positions
-    positions = list()
-    for i in range(iterations):
-        positions = positions + [(i, (sequence_solutions[i * string_size], sequence_solutions[(i + 1) * string_size]))]
-    return positions
+    organized_positions = dict()
+    # print(len(sequence_string_set), " length sequence string set")
+    for seq_number in range(len(sequence_string_set)):
+        # print(len(sequence_string_set[seq_number]), " sequence string set sequence length")
+        for i in range(len(sequence_string_set[seq_number])):
+            # create list of items
+            temp = list()
+            start = count
+            for j in range(count, count + string_size):
+                count = count + 1
+                temp = temp + [positions[j]]
+            # print(temp)
+            organized_positions[(seq_number, i)] = temp
+    return organized_positions
 
-def get_alignment_string(sequences, gaps, sequence_solutions):
+def get_alignment_string(sequence_string_set, gaps, positions):
     # group positions based on sequence
-    string_size = max([len(s) for s in sequences]) + gaps
-    # sort positions
-    positions = get_positions(string_size, sequence_solutions)
-    
-    # position[([sequence, position],value)]
+    string_size = max([len(s) for s in sequence_string_set]) + gaps
 
-    align_strings = [["-" for i in range(string_size)] for i in range(len(sequences))]
-    for (key, value) in positions.items():
-        align_strings[key[0]][value] = sequences[key[0]][key[1]]
+    # get the positions, based on sequence
+    organized_positions = get_positions(string_size, sequence_string_set, positions)
+
+    # create an empty matrix
+    align_strings = [["-" for i in range(string_size)] for i in range(len(sequence_string_set))]
+
+    # fill in the matrix
+    for key in organized_positions.keys():
+        # print(organized_positions[key])
+        for result_id in range(len(organized_positions[key])):
+            if organized_positions[key][result_id]:
+                align_strings[key[0]][result_id] = sequence_string_set[key[0]][key[1]]
+                # print(sequence_string_set[key[0]][key[1]])
     return align_strings
     

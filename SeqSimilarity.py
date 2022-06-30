@@ -103,6 +103,7 @@ class SeqSimilarity:
 
     @classmethod
     def get_pairwise_similarity(cls, seq_file_info):
+    
         if not cls._is_init:
             return None
 
@@ -127,6 +128,7 @@ class SeqSimilarity:
         # catches any less common cases (documentation: https://docs.python.org/3/library/subprocess.html#subprocess.Popen)
         args=shlex.split(mash_command)
         with subprocess.Popen(args, stdout=fw, stderr=subprocess.DEVNULL) as p:
+            print(seq_file_info.mash_seq_name_to_seq_id_map)
             global_edge_weight_mtrx = cls._parse_mash_output(fr, seq_file_info.mash_seq_name_to_seq_id_map,
                                                         seq_file_info.seq_count)
          
