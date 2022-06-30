@@ -40,8 +40,7 @@ def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_c
 
     # quantum spin column version
     sizes = [len(sequence_string_set[i]) for i in range(len(sequence_string_set))]
-    print(sequence_string_set)
-    print(sizes)
+
     # calc weights for matching
     matchings = np.zeros((len(sequence_string_set), max(sizes), len(sequence_string_set), max(sizes)))
     for s1 in range(len(sequence_string_set)):

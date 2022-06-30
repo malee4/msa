@@ -148,7 +148,7 @@ if __name__ == '__main__':
                 # if threshold is not met, append additional sequences and continue onto next cluster
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
-        print("Length of string set: " + str(len(sequence_string_set)))
+        # print("Length of string set: " + str(len(sequence_string_set)))
         results = run_lindvall(sequence_string_set, old_center, simulation=simulation_setting)
         # print(results) # for testing purposes
 
