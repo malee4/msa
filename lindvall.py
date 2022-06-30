@@ -183,6 +183,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     return spin_mat, shift, rev_ind_scheme
 
 def get_positions(string_size, sequence_string_set, positions):
+    count = 0
     # split into positions
     organized_positions = dict()
     # print(len(sequence_string_set), " length sequence string set")
@@ -191,8 +192,9 @@ def get_positions(string_size, sequence_string_set, positions):
         for i in range(len(sequence_string_set[seq_number])):
             # create list of items
             temp = list()
-            for j in range(string_size * (seq_number * len(sequence_string_set[seq_number]) + i), string_size*(seq_number * len(sequence_string_set[seq_number])+i+1)):
-                print(j)
+            start = count
+            for j in range(count, count + string_size):
+                count = count + 1
                 temp = temp + [positions[j]]
             # print(temp)
             organized_positions[(seq_number, i)] = temp

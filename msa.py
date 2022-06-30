@@ -118,8 +118,7 @@ if __name__ == '__main__':
         else:
             current_cluster_size = 1 
             if count == len(id_to_center_and_cluster_map):
-                sequence_string_set = additional_sequences + [str(center_sequence.seq)]
-                # print(sequence_string_set)
+                sequence_string_set = additional_sequences + [str(current_center_sequence.seq)]
                 do_not_skip = False
             else:
                 # if cluster is singleton, pair it with another cluster

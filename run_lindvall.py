@@ -45,8 +45,9 @@ def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_c
     matchings = np.zeros((len(sequence_string_set), max(sizes), len(sequence_string_set), max(sizes)))
     for s1 in range(len(sequence_string_set)):
         for s2 in range(len(sequence_string_set)):
-            for n1 in range(sizes[1]):
+            for n1 in range(sizes[s1]):
                 for n2 in range(sizes[s2]):
+
                     if sequence_string_set[s1][n1] == sequence_string_set[s2][n2]:
                         matchings[s1, n1, s2, n2] = match_cost
                     else:
