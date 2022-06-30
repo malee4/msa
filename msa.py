@@ -70,6 +70,7 @@ if __name__ == '__main__':
     # settings
     min_cluster_processing_size = 2
     gaps = 0
+    simulation_setting = True
 
     # run the clustering algorithm to get a dictionary of cluster and their centers
     # note centers are NOT a part of the list
@@ -148,25 +149,20 @@ if __name__ == '__main__':
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
         print("Length of string set: " + str(len(sequence_string_set)))
-        results = run_lindvall(sequence_string_set, old_center, simulation=True)
-        print(results) # for testing purposes
+        results = run_lindvall(sequence_string_set, old_center, simulation=simulation_setting)
+        # print(results) # for testing purposes
 
         # gets the lowest energy solution, converts to dataframe
-        positions = results.lowest().to_pandas_dataframe()
-        positions = positions[:(len(positions)-3)] # NOTE: ASSUMES IS NOT SIMULATION, removes last three columns
+        positions = results.lowest().samples()[0]
 
-        # MISSING THIS METHOD
-        # convert process to strings NOTE: GET_ALIGNMENT_STRING IS FAULTY
-        # API: get_alignment_string(sequence_string_set, gaps, positions) --> returns 
-        # aligned_strings = get_alignment_string(sequence_string_set, gaps, positions)
-       
-        # initialization of temporary solution
-        aligned_strings = []
+        # get the alignments
+        aligned_strings = get_alignment_string(sequence_string_set, gaps, positions)
 
         # if this is the first cluster
         if not old_center:
             aligned_final = aligned_final + aligned_strings
         else:
+            # merge aligned strings with past aligned sequences
             aligned_final = merge_seq_sets(aligned_final, aligned_strings)
         
         # for future alignment purposes
@@ -177,5 +173,6 @@ if __name__ == '__main__':
         if count % 5 == 0 and count != 0:
             print(str(count) + " clusters aligned...")
     
-    print(aligned_final)
+    for sequence in aligned_final:
+        print("".join(sequence))
 

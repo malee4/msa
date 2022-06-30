@@ -182,26 +182,36 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
 
     return spin_mat, shift, rev_ind_scheme
 
-def get_positions(string_size, sequence_solutions):
-    # determine number of elements per string sequence
-    iterations = int((len(sequence_solutions)) / string_size)
-
+def get_positions(string_size, sequence_string_set, positions):
     # split into positions
-    positions = list()
-    for i in range(iterations):
-        positions = positions + [(i, (sequence_solutions[i * string_size], sequence_solutions[(i + 1) * string_size]))]
-    return positions
+    organized_positions = dict()
+    for seq_number in range(len(sequence_string_set)):
+        for i in range(len(sequence_string_set[seq_number])):
+            # create list of items
+            temp = list()
+            for j in range(string_size * (seq_number + i), string_size*(seq_number+i+1)):
+                temp = temp + [positions[j]]
+            organized_positions[(seq_number, i)] = temp
+            
+    return organized_positions
 
-def get_alignment_string(sequences, gaps, sequence_solutions):
+def get_alignment_string(sequence_string_set, gaps, positions):
     # group positions based on sequence
-    string_size = max([len(s) for s in sequences]) + gaps
-    # sort positions
-    positions = get_positions(string_size, sequence_solutions)
-    
-    # position[([sequence, position],value)]
+    string_size = max([len(s) for s in sequence_string_set]) + gaps
 
-    align_strings = [["-" for i in range(string_size)] for i in range(len(sequences))]
-    for (key, value) in positions.items():
-        align_strings[key[0]][value] = sequences[key[0]][key[1]]
+    # get the positions, based on sequence
+    organized_positions = get_positions(string_size, sequence_string_set, positions)
+
+    # create an empty matrix
+    align_strings = [["-" for i in range(string_size)] for i in range(len(sequence_string_set))]
+
+    # fill in the matrix
+    for key in organized_positions.keys():
+        seq_number = key[0]
+        letter = key[1]
+        
+        for result_id in range(len(organized_positions[key])):
+            if organized_positions[key][result_id]:
+                align_strings[seq_number][result_id] = sequence_string_set[seq_number][letter]
     return align_strings
     
