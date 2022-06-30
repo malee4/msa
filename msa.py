@@ -119,6 +119,7 @@ if __name__ == '__main__':
             current_cluster_size = 1 
             if count == len(id_to_center_and_cluster_map):
                 sequence_string_set = additional_sequences + [str(center_sequence.seq)]
+                # print(sequence_string_set)
                 do_not_skip = False
             else:
                 # if cluster is singleton, pair it with another cluster
@@ -149,8 +150,8 @@ if __name__ == '__main__':
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
         # print("Length of string set: " + str(len(sequence_string_set)))
+        print(sequence_string_set)
         results = run_lindvall(sequence_string_set, old_center, simulation=simulation_setting)
-        # print(results) # for testing purposes
 
         # gets the lowest energy solution, converts to dataframe
         positions = results.lowest().samples()[0]
@@ -174,5 +175,6 @@ if __name__ == '__main__':
             print(str(count) + " clusters aligned...")
     
     for sequence in aligned_final:
-        print("".join(sequence))
+        print(sequence)
+        # print("".join(sequence))
 
