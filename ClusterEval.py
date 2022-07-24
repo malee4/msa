@@ -273,56 +273,56 @@ class ClusterEval:
             cluster_ids_to_centers_and_cluster_seqs[cluster_id] = (center_seq_rec, cluster_seq_recs)
         return cluster_ids_to_centers_and_cluster_seqs, count
 
-    @classmethod
-    def eval_clusters(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info):
-        if not cls._is_init:
-            return None
+    # @classmethod
+    # def eval_clusters(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info):
+    #     if not cls._is_init:
+    #         return None
 
-        seq_rec_pairs_to_align = cls._generate_seq_pairs_for_align(seq_cluster_ptrs, global_edge_weight_mtrx,
-                                                                   seq_file_info.seq_file_path)
+    #     seq_rec_pairs_to_align = cls._generate_seq_pairs_for_align(seq_cluster_ptrs, global_edge_weight_mtrx,
+    #                                                                seq_file_info.seq_file_path)
 
-        cluster_id_to_eval_output_map = dict()
-        # called here
-        seq_ident_func = cls._set_cal_seq_ident_func(seq_file_info.seq_type)
+    #     cluster_id_to_eval_output_map = dict()
+    #     # called here
+    #     seq_ident_func = cls._set_cal_seq_ident_func(seq_file_info.seq_type)
 
-        with Pool(processes=cls._num_of_threads, maxtasksperchild=10) as pool:
-            for seq_ident_tuple in pool.imap_unordered(seq_ident_func, seq_rec_pairs_to_align, 2000):
-                center_seq_id, cluster_seq_id, cluster_id, seq_ident = seq_ident_tuple
-                if cluster_id in cluster_id_to_eval_output_map:
-                    cluster_eval_output = cluster_id_to_eval_output_map[cluster_id]
-                    cluster_eval_output[0] += 1
-                    cluster_eval_output[1] += seq_ident
+    #     with Pool(processes=cls._num_of_threads, maxtasksperchild=10) as pool:
+    #         for seq_ident_tuple in pool.imap_unordered(seq_ident_func, seq_rec_pairs_to_align, 2000):
+    #             center_seq_id, cluster_seq_id, cluster_id, seq_ident = seq_ident_tuple
+    #             if cluster_id in cluster_id_to_eval_output_map:
+    #                 cluster_eval_output = cluster_id_to_eval_output_map[cluster_id]
+    #                 cluster_eval_output[0] += 1
+    #                 cluster_eval_output[1] += seq_ident
 
-                    if seq_ident < cluster_eval_output[2]:
-                        cluster_eval_output[2] = seq_ident
-                        cluster_eval_output[4] = cluster_seq_id
-                else:
-                    cluster_id_to_eval_output_map[cluster_id] = [2, seq_ident, seq_ident, center_seq_id, cluster_seq_id]
+    #                 if seq_ident < cluster_eval_output[2]:
+    #                     cluster_eval_output[2] = seq_ident
+    #                     cluster_eval_output[4] = cluster_seq_id
+    #             else:
+    #                 cluster_id_to_eval_output_map[cluster_id] = [2, seq_ident, seq_ident, center_seq_id, cluster_seq_id]
 
-        return cls._convert_to_dataframe(cluster_id_to_eval_output_map, seq_file_info)
+    #     return cls._convert_to_dataframe(cluster_id_to_eval_output_map, seq_file_info)
 
-    @classmethod
-    def eval_clusters_single_thread(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info):
-        if not cls._is_init:
-            return None
+    # @classmethod
+    # def eval_clusters_single_thread(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info):
+    #     if not cls._is_init:
+    #         return None
 
-        seq_rec_pairs_to_align = cls._generate_seq_pairs_for_align(seq_cluster_ptrs, global_edge_weight_mtrx,
-                                                                   seq_file_info.seq_file_path)
+    #     seq_rec_pairs_to_align = cls._generate_seq_pairs_for_align(seq_cluster_ptrs, global_edge_weight_mtrx,
+    #                                                                seq_file_info.seq_file_path)
 
-        cluster_id_to_eval_output_map = dict()
-        seq_ident_func = cls._set_cal_seq_ident_func(seq_file_info.seq_type)
+    #     cluster_id_to_eval_output_map = dict()
+    #     seq_ident_func = cls._set_cal_seq_ident_func(seq_file_info.seq_type)
 
-        for seq_ident_tuple in map(seq_ident_func, seq_rec_pairs_to_align):
-            center_seq_id, cluster_seq_id, cluster_id, seq_ident = seq_ident_tuple
-            if cluster_id in cluster_id_to_eval_output_map:
-                cluster_eval_output = cluster_id_to_eval_output_map[cluster_id]
-                cluster_eval_output[0] += 1
-                cluster_eval_output[1] += seq_ident
+    #     for seq_ident_tuple in map(seq_ident_func, seq_rec_pairs_to_align):
+    #         center_seq_id, cluster_seq_id, cluster_id, seq_ident = seq_ident_tuple
+    #         if cluster_id in cluster_id_to_eval_output_map:
+    #             cluster_eval_output = cluster_id_to_eval_output_map[cluster_id]
+    #             cluster_eval_output[0] += 1
+    #             cluster_eval_output[1] += seq_ident
 
-                if seq_ident < cluster_eval_output[2]:
-                    cluster_eval_output[2] = seq_ident
-                    cluster_eval_output[4] = cluster_seq_id
-            else:
-                cluster_id_to_eval_output_map[cluster_id] = [2, seq_ident, seq_ident, center_seq_id, cluster_seq_id]
+    #             if seq_ident < cluster_eval_output[2]:
+    #                 cluster_eval_output[2] = seq_ident
+    #                 cluster_eval_output[4] = cluster_seq_id
+    #         else:
+    #             cluster_id_to_eval_output_map[cluster_id] = [2, seq_ident, seq_ident, center_seq_id, cluster_seq_id]
 
-        return cls._convert_to_dataframe(cluster_id_to_eval_output_map, seq_file_info)
+    #     return cls._convert_to_dataframe(cluster_id_to_eval_output_map, seq_file_info)
