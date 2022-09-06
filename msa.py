@@ -37,7 +37,7 @@ def shift_spaces(seq_set, shifts): # seq_set is a list of strings
         for i in range(len(shifts)):
             # if a "-" exists at the position
             if shifts[i]:
-                seq = seq[:i] + "-" + seq[i:]
+                seq = seq[:i] + ["-"] + seq[i:]
             else:
                 continue
         # add the sequence to shifted_set
@@ -61,6 +61,24 @@ def merge_seq_sets(old_aligned, new_aligned):
     new_aligned_shifted_set = shift_spaces(new_aligned, shifts_new_to_old)
 
     return old_aligned_shifted_set + new_aligned_shifted_set[1:] # remove repeat of old_center
+
+# test merge_seq_sets
+def test_merge():
+    x = [
+        ["1", "-", "2", "3", "4", "5", "6", "7", "-"],
+        ["1", "-", "2", "3", "4", "5", "6", "7", "-"],
+        ["1", "-", "2", "3", "-", "5", "6", "-", "8"]
+        ]
+    y = [
+        ["1", "2", "3", "-", "5", "6", "-", "8"], 
+        ["1", "2", "3", "4", "5", "6", "7", "-"]
+        ]
+
+    aligned_set = merge_seq_sets(x, y)
+    for row in aligned_set:
+        print(row)
+
+
 
 
 if __name__ == '__main__':
@@ -157,7 +175,7 @@ if __name__ == '__main__':
 
         # get the alignments
         aligned_strings = get_alignment_string(sequence_string_set, gaps, positions)
-
+        # print(aligned_strings)
         # if this is the first cluster
         if not old_center:
             aligned_final = aligned_final + aligned_strings
