@@ -175,7 +175,7 @@ if __name__ == '__main__':
 
         # get the alignments
         aligned_strings = get_alignment_string(sequence_string_set, gaps, positions)
-
+        # print(aligned_strings)
         # if this is the first cluster
         if not old_center:
             aligned_final = aligned_final + aligned_strings

@@ -212,10 +212,9 @@ def get_alignment_string(sequence_string_set, gaps, positions):
 
     # fill in the matrix
     for key in organized_positions.keys():
-        # print(organized_positions[key])
         for result_id in range(len(organized_positions[key])):
             if organized_positions[key][result_id]:
                 align_strings[key[0]][result_id] = sequence_string_set[key[0]][key[1]]
-                # print(sequence_string_set[key[0]][key[1]])
+                print(sequence_string_set[key[0]][key[1]])
     return align_strings
     
