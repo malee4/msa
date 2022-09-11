@@ -28,7 +28,7 @@ def check_seq_type(seq_str):
             return AA
     return None
 
-def read_seq_file(seq_file_path, config):
+def read_seq_file(seq_file_path, user_params):
     SeqFileInfo = namedtuple('SeqFileInfo', ['mash_seq_name_to_seq_id_map', 'seq_id_to_seq_name_map',
                                              'error_log', 'seq_file_path', 'seq_type', 'mash_last_seq_name',
                                              'seq_count', 'max_seq_len'])
@@ -41,12 +41,13 @@ def read_seq_file(seq_file_path, config):
     seq_count = 0
     max_seq_len = 0
 
-    check_seq_len = config is not None # if configurations exist
+    check_seq_len = user_params is not None # if configurations exist
 
     if check_seq_len:
-        kmer_size = config['kmer_size']
-        default_dna_kmer_size = config['dna_mash']['kmer']
-        default_protein_kmer_size = config['protein_mash']['kmer']
+        kmer_size = user_params.kmer_size
+        default_dna_kmer_size = user_params.default_dna_kmer_size
+        default_protein_kmer_size = user_params.default_protein_kmer_size
+
 
     # read in the file
     with open(seq_file_path, 'r') as f:

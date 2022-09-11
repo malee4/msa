@@ -2,9 +2,9 @@ from shutil import rmtree
 # from alfatclust import internal_parse_to_user_params
 from collections import namedtuple
 from new_Constants import *
-from new_SeqCluster import *
-from new_SeqSimilarity import *
-from new_Utils import get_max_precision
+from SeqCluster import *
+from SeqSimilarity import *
+from new_Utils import get_max_precision, read_seq_file
 import os
 import sys
 
@@ -59,11 +59,11 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
         # TODO: print out user parameters
 
         # initialize SeqClust and SeqSimilarity
-        # STOPPED HERE
-        new_SeqSimilarity.init(user_params)
         SeqSimilarity.init(user_params)
-        # new_SeqCluster.init(user_params)
-
+        SeqCluster.init(user_params)
+        
+        # validing input sequence file
+        seq_file_info = read_seq_file(seq_file_path, user_params)
 
     except KeyboardInterrupt:
         print()

@@ -14,8 +14,8 @@ from ClusterEval import *
 from Config import *
 from Constants import *
 from Precluster import *
-from SeqCluster import *
-from SeqSimilarity import *
+from old_SeqCluster import *
+from old_SeqSimilarity import *
 from Utils import read_seq_file, convert_to_seq_clusters, get_max_precision #, internal_convert_to_seq_clusters
 from collections import namedtuple
 from math import ceil
@@ -247,8 +247,9 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
         
         display_user_params(user_params)
 
-        SeqSimilarity.init(user_params)
-        SeqCluster.init(user_params)
+        # IF GOING BACK TO OLD UPDATE FILE NAMES!!
+        old_SeqSimilarity.init(user_params)
+        old_SeqCluster.init(user_params)
 
         print('Validating input sequence file \'{}\'...'.format(seq_file_path))
         seq_file_info = read_seq_file(seq_file_path, user_params)
