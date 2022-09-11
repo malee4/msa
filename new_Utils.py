@@ -10,7 +10,7 @@ def check_seq_type(seq_str):
         if len(unambig_dna_seq_str) / len(seq_str) >= 0.95:
             return DNA
         else:
-            return AA
+            return AA # amino acids
     elif re.match(IUPAC_AA_STR_PATTERN, seq_str):
         unambig_protein_seq_str = re.sub(IUPAC_AMBIG_AA_BASES, '', seq_str)
         if len(unambig_protein_seq_str) / len(seq_str) >= 0.95:
@@ -41,13 +41,24 @@ def read_seq_file(seq_file_path, config):
 
         for seq_record in SeqIO.parse(f, 'fasta'):
             # error messages
-            unknown_seq_type_message = "Cannot determine whether it is DNA or protein sequence"
+            unknown_seq_type_msg = "Cannot determine whether it is DNA or protein sequence"
             short_seq_len_msg = "Sequence length shorter than the required k-mer size"
 
             last_seq_name = seq_record.description
             seq_type = check_seq_type(str(seq_record.seq))
 
-    
+            # if the sequence type can not be determined
+            if seq_type is None:                 
+                seq_error_log.append(unknown_seq_type_msg.format(last_seq_name))
+
+            # ensure the file sequence type remains constasnt
+            if file_seq_type is None:
+                file_seq_type = seq_type
+            elif file_seq_type != seq_type:
+                seq_error_log.append('The input sequences consist of both DNA and protein sequences')
+                break
+            
+            seq_len = len(seq_record.seq) # get and store the length of the current sequence
 
     
 
