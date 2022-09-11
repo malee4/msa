@@ -94,3 +94,5 @@ def getConfig():
     config['protein_evaluation'] = protein_eval
 
     return config
+
+
