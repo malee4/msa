@@ -3,6 +3,17 @@ from new_Constants import *
 from collections import namedtuple
 import re
 
+def get_max_precision(*vals):
+    max_precision = 2
+    
+    for val in vals:
+        m = re.match(r'\d+\.(\d*[1-9])0*', str(val))
+        if m:
+            precision = len(m.group(1))
+            if precision > max_precision:
+                max_precision = precision
+
+    return max_precision
 
 def check_seq_type(seq_str):
     if re.match(IUPAC_DNA_STR_PATTERN, seq_str):
