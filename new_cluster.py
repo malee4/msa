@@ -65,6 +65,29 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
         # validing input sequence file
         seq_file_info = read_seq_file(seq_file_path, user_params)
 
+        # if no sequences have been read in
+        if seq_file_info.seq_count == 0:
+            sys.exit('No sequence found in \'{}\''.format(seq_file_path))
+
+        # if an error is encountered
+        if len(seq_file_info.error_log) > 0:
+            sys.exit(os.linesep.join(seq_file_info.error_log))
+
+        cluster_eval_output_df = None
+        output_seq_clusters = list()
+        overall_error_log = list() # to keep track of errors encountered
+        is_precluster_mode = seq_file_info.seq_count > user_params.precluster_thres 
+
+        # TODO: precluster mode functionality
+        if is_precluster_mode:
+            print("Precluster mode")
+
+            # precluster mode functionality
+
+        else:
+            print("Estimating pairwise sequence distances") # for progress tracking purposes
+            global_edge_weight_mtrx = ...
+
     except KeyboardInterrupt:
         print()
         print('Process aborted due to keyboard interrupt')
