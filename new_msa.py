@@ -64,7 +64,7 @@ if __name__ == '__main__':
     seq_file_path = "/Users/melod/Desktop/msa/test_data/test_file.fa"
 
     # get clusters
-    print("Getting Alignments")
+    print("Getting clusters and centers")
     id_to_center_and_cluster_map = get_clusters_and_centers(seq_file_path)  
 
     # list of sequences in singletons or small-sized clusters
@@ -84,6 +84,7 @@ if __name__ == '__main__':
     ####################################
     for id in id_to_center_and_cluster_map:
         count = count + 1
+
         # initialize the set of strings
         sequence_string_set = list()
 
@@ -133,8 +134,7 @@ if __name__ == '__main__':
                 # if threshold is not met, append additional sequences and continue onto next cluster
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
-        # print("Length of string set: " + str(len(sequence_string_set)))
-        print(sequence_string_set)
+        
         results = run_lindvall(sequence_string_set, old_center, simulation=IS_SIMULATION)
 
         # gets the lowest energy solution, converts to dataframe
@@ -142,7 +142,7 @@ if __name__ == '__main__':
 
         # get the alignments
         aligned_strings = get_alignment_string(sequence_string_set, GAPS, positions)
-        # print(aligned_strings)
+
         # if this is the first cluster
         if not old_center:
             aligned_final = aligned_final + aligned_strings

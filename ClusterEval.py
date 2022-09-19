@@ -4,7 +4,7 @@
 # SOURCE: "Clustering biological sequences with dynamic sequence similarity threshold"
 # URL: https://doi.org/10.1186/s12859-022-04643-9
 
-from Constants import DNA, AA
+from new_Constants import DNA, AA
 from new_Utils import cal_outlier_thres_by_iqr, read_seq_file_for_eval
 from Bio.Align import PairwiseAligner, substitution_matrices
 from multiprocessing import Pool
