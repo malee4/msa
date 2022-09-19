@@ -283,3 +283,29 @@ class ClusterEval:
 
 
     # MAJOR CHANGE: delete eval_clusters() method
+
+    @classmethod
+    def eval_clusters_single_thread(cls, seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info):
+        if not cls._is_init:
+            return None
+
+        seq_rec_pairs_to_align = cls._generate_seq_pairs_for_align(seq_cluster_ptrs, global_edge_weight_mtrx,
+                                                                    seq_file_info.seq_file_path)
+
+        cluster_id_to_eval_output_map = dict()
+        seq_ident_func = cls._set_cal_seq_ident_func(seq_file_info.seq_type)
+
+        for seq_ident_tuple in map(seq_ident_func, seq_rec_pairs_to_align):
+            center_seq_id, cluster_seq_id, cluster_id, seq_ident = seq_ident_tuple
+            if cluster_id in cluster_id_to_eval_output_map:
+                cluster_eval_output = cluster_id_to_eval_output_map[cluster_id]
+                cluster_eval_output[0] += 1
+                cluster_eval_output[1] += seq_ident
+
+                if seq_ident < cluster_eval_output[2]:
+                    cluster_eval_output[2] = seq_ident
+                    cluster_eval_output[4] = cluster_seq_id
+            else:
+                cluster_id_to_eval_output_map[cluster_id] = [2, seq_ident, seq_ident, center_seq_id, cluster_seq_id]
+
+        return cls._convert_to_dataframe(cluster_id_to_eval_output_map, seq_file_info)
