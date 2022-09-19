@@ -1,10 +1,10 @@
 # AUTHOR:Jimmy Ka Ho Chiu & Rick Twee-Hee Ong
-# CODE VERSION: 2022, last updated locally June 21, 2022
+# CODE VERSION: 2022, last updated locally September 19, 2022
 # LANGUAGE: Python
 # SOURCE: "Clustering biological sequences with dynamic sequence similarity threshold"
 # URL: https://doi.org/10.1186/s12859-022-04643-9
 
-from Constants import AA
+from new_Constants import AA
 import numpy as np
 import os
 import re

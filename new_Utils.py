@@ -13,6 +13,33 @@ def cal_outlier_thres_by_iqr(data_vals):
 
     return np.array([quartile_vals[0] - 1.5 * inter_quartile_range, quartile_vals[1] + 1.5 * inter_quartile_range])
 
+# for preclustering only
+def convert_to_seq_clusters(seq_cluster_ptrs, seq_id_to_seq_name_map):
+    output_seq_clusters = list()
+
+    for cluster_id in range(np.max(seq_cluster_ptrs) + 1):
+        seq_cluster = list()
+        for seq_id in np.argwhere(seq_cluster_ptrs == cluster_id).flatten():
+            seq_cluster.append('{}{}'.format(seq_id_to_seq_name_map[str(seq_id)], os.linesep))
+
+        output_seq_clusters.append(seq_cluster)
+
+    return output_seq_clusters
+
+# for preclustering only
+def read_seq_file_for_preclusters(seq_file_path, seq_name_to_precluster_map):
+    precluster_to_seq_recs_map = dict()
+
+    with open(seq_file_path, 'r') as f:
+        for seq_record in SeqIO.parse(f, 'fasta'):
+            precluster_id = seq_name_to_precluster_map[seq_record.id]
+
+            if precluster_id in precluster_to_seq_recs_map:
+                precluster_to_seq_recs_map[precluster_id].append(seq_record)
+            else:
+                precluster_to_seq_recs_map[precluster_id] = [seq_record]
+
+    return precluster_to_seq_recs_map
 
 def read_seq_file_for_eval(seq_file_path, seq_id_to_non_singleton_cluster_id_map):
     cluster_to_seq_recs_map = dict()

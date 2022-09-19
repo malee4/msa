@@ -1,5 +1,5 @@
 # AUTHOR: Oscar Bulancea Lindvall, KTH Royal Institute of Technology
-# CODE VERSION: 2019, last updated locally June 16, 2022
+# CODE VERSION: 2019, last updated locally September 19, 2022
 # LANGUAGE: Python, Leap IDE
 # SOURCE: "Quantum Methods for Sequence Alignment and Metagenomics"
 # URL: https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
@@ -111,7 +111,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     Matching at same position
     H_matching = A*sum_{s1,s2} sum_{n1,n2} sum_i w_{s1,s2,n1,n2} * x_{s1,n1,i}*x_{s2,n2,i}
     """
-    print("Calculating cost function")
+    # print("Calculating cost function")
     for s1 in range(L):
         for s2 in range(s1+1,L):
             for n1 in range(sizes[s1]):
@@ -126,7 +126,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     H+gap = A*sum_{s1,n1}sum_{s2}sum_i g*x_{s1,n1,i}(1-sum_n2 x_{s2,n2,i})
     Represents pairing of (s1, n1) at i to nothing in s2
     """
-    print("Penalties version 2")
+    # print("Penalties version 2")
     if gap_pen != 0:
         for s1 in range(L):
             for n1 in range(sizes[s1]):
@@ -145,7 +145,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     + sum_{s,n} sum_{i,j} x_{s,n,i}x_{s,n,j}
     = B*n_tot - B*sum_{s,n}sum_i x_{s,n,i} + B*sum_{s,n}sum_{i!=j} x_{s,n,i}x_{s,n,j} 
     """
-    print("Placement terms")
+    # print("Placement terms")
     shift += B*n_tot
     for s in range(L):
         for n in range(sizes[s]):
@@ -164,7 +164,7 @@ def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=Fa
     H_order_no_del = C*sum_{s,n} sum_{i<=j} x_{s,n,j}x_{s,n+1,i} with deletions
     H_order = C*sum_s sum_{n1<n2}sum_{i<=j} x_{s,n1,j}x_{s,n2,i} 
     """
-    print("Ordering terms")
+    # print("Ordering terms")
     for s in range(L):
         if allow_delete:
             for n1 in range(sizes[s]):
@@ -186,9 +186,8 @@ def get_positions(string_size, sequence_string_set, positions):
     count = 0
     # split into positions
     organized_positions = dict()
-    # print(len(sequence_string_set), " length sequence string set")
+    
     for seq_number in range(len(sequence_string_set)):
-        # print(len(sequence_string_set[seq_number]), " sequence string set sequence length")
         for i in range(len(sequence_string_set[seq_number])):
             # create list of items
             temp = list()
@@ -196,7 +195,6 @@ def get_positions(string_size, sequence_string_set, positions):
             for j in range(count, count + string_size):
                 count = count + 1
                 temp = temp + [positions[j]]
-            # print(temp)
             organized_positions[(seq_number, i)] = temp
     return organized_positions
 
@@ -215,6 +213,5 @@ def get_alignment_string(sequence_string_set, gaps, positions):
         for result_id in range(len(organized_positions[key])):
             if organized_positions[key][result_id]:
                 align_strings[key[0]][result_id] = sequence_string_set[key[0]][key[1]]
-                print(sequence_string_set[key[0]][key[1]])
     return align_strings
     
