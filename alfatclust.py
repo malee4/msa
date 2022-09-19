@@ -73,7 +73,7 @@ def internal_parse_to_user_params(seq_file_path, config):
     
     # make sure any configurations are valid
     if not os.path.isfile(seq_file_path):
-        param_error_log.append('Sequence file \'{}\' does not exist'.format(args.seq_file_path))
+        param_error_log.append('Sequence file \'{}\' does not exist'.format(seq_file_path))
 
     # makes sure the configurations are valid
     if config.res_param_start > 1 or config.res_param_start <= 0:
@@ -247,6 +247,7 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
         
         display_user_params(user_params)
 
+        # IF GOING BACK TO OLD UPDATE FILE NAMES!!
         SeqSimilarity.init(user_params)
         SeqCluster.init(user_params)
 
