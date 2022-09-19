@@ -62,7 +62,7 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
         SeqSimilarity.init(user_params)
         SeqCluster.init(user_params)
         
-        # validing input sequence file
+        # validating input sequence file
         seq_file_info = read_seq_file(seq_file_path, user_params)
 
         # if no sequences have been read in
@@ -86,7 +86,12 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
 
         else:
             print("Estimating pairwise sequence distances") # for progress tracking purposes
-            global_edge_weight_mtrx = ...
+            global_edge_weight_mtrx = SeqSimilarity.get_pairwise_similarity(seq_file_info)
+
+            print("Finding raw sequence cluster")
+            seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
+
+            # KEY DIFFERENCE: find the centers first
 
     except KeyboardInterrupt:
         print()

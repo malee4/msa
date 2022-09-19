@@ -4,11 +4,12 @@
 # SOURCE: "Clustering biological sequences with dynamic sequence similarity threshold"
 # URL: https://doi.org/10.1186/s12859-022-04643-9
 
-from new_Constants import AA
+from Constants import AA
+import numpy as np
 import os
+import re
 import shlex
 import subprocess
-import re
 import Mash
 
 
@@ -55,11 +56,7 @@ class SeqSimilarity:
     def _parse_mash_output(cls, fid, mash_seq_name_to_seq_id_map, seq_count):
         max_seq_id = seq_count - 1
         global_edge_weight_mtrx = np.zeros((seq_count, seq_count), dtype=np.float32)
-        # print(fid)
-        # readFile = os.fdopen(fid)
-        # print(readFile.readline())
-        # return global_edge_weight_mtrx
-        # i = 0
+        
         with os.fdopen(fid) as f:
             while True:
                 line = f.readline()
@@ -68,22 +65,17 @@ class SeqSimilarity:
                 # print(r"line {} reached", i)
                 # i = i + 1
                 seq_name2 = line_fields[1]
-                # print(r"line {} reached", i)
-                # i = i + 1
+                
                 seq_id1 = mash_seq_name_to_seq_id_map[seq_name1]
                 seq_id2 = mash_seq_name_to_seq_id_map[seq_name2]
-                # print(r"line {} reached", i)
-                # i = i + 1
+                
                 # when we have arrived at the end
                 if seq_id1 == max_seq_id and seq_id2 == max_seq_id:
                     break
-                # print(r"line {} reached", i)
-                # i = i + 1
+                
                 # skip comparing sequences that refer to the same object
                 if seq_id1 == seq_id2:
                     continue
-                # print(r"line {} reached", i)
-                # i = i + 1
                 if cls._min_shared_hash_ratio is not None:
                     m = re.match(r'(\d+)/(\d+)', line_fields[4])
                     if m:
@@ -91,11 +83,7 @@ class SeqSimilarity:
                             continue
                     else:
                         continue
-                # print(r"line {} reached", i)
-                # i = i + 1
                 global_edge_weight_mtrx[seq_id1, seq_id2] = 1 - float(line_fields[2]) # this turns it into a maximization problem
-                # print(r"line {} reached", i)
-                # i = i + 1
         return global_edge_weight_mtrx
 
 
