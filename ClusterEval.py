@@ -271,8 +271,12 @@ class ClusterEval:
             else:
                 center_seq_rec = cls._select_max_len_seq_rec(cluster_seq_recs)
                 count = count + 1
-            
-            cluster_seq_recs = cluster_seq_recs.remove(center_seq_rec)
+
+            for number in range(len(cluster_seq_recs)):
+                item = cluster_seq_recs[number]
+                if center_seq_rec.name == item.name:
+                    cluster_seq_recs.pop(number)
+            #cluster_seq_recs = cluster_seq_recs.remove(center_seq_rec)
             
             cluster_ids_to_centers_and_cluster_seqs[cluster_id] = (center_seq_rec, cluster_seq_recs)
         return cluster_ids_to_centers_and_cluster_seqs, count
