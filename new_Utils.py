@@ -2,6 +2,37 @@ from Bio import SeqIO
 from new_Constants import *
 from collections import namedtuple
 import re
+import numpy as np
+
+def cal_outlier_thres_by_iqr(data_vals):
+    if np.all(np.isnan(data_vals)):
+        return np.array([0, 0])
+
+    quartile_vals = np.nanpercentile(data_vals, [25, 75])
+    inter_quartile_range = quartile_vals[1] - quartile_vals[0]
+
+    return np.array([quartile_vals[0] - 1.5 * inter_quartile_range, quartile_vals[1] + 1.5 * inter_quartile_range])
+
+
+def read_seq_file_for_eval(seq_file_path, seq_id_to_non_singleton_cluster_id_map):
+    cluster_to_seq_recs_map = dict()
+    seq_id = 0
+
+    with open(seq_file_path, 'r') as f:
+        for seq_record in SeqIO.parse(f, 'fasta'):
+            if seq_id in seq_id_to_non_singleton_cluster_id_map:
+                seq_record.description = ''
+                seq_record.id = seq_id
+                cluster_id = seq_id_to_non_singleton_cluster_id_map[seq_id]
+
+                if cluster_id in cluster_to_seq_recs_map:
+                    cluster_to_seq_recs_map[cluster_id].append(seq_record)
+                else:
+                    cluster_to_seq_recs_map[cluster_id] = [seq_record]
+
+            seq_id += 1
+
+    return cluster_to_seq_recs_map
 
 def get_max_precision(*vals):
     max_precision = 2
@@ -96,11 +127,12 @@ def read_seq_file(seq_file_path, user_params):
 
             # MAJOR CHANGE: get and store name of the sequence within read_seq_file function
             m = re.match(FASTA_SEQ_NAME_WITH_COMMENT_PATTERN, last_seq_name)
-            if m:
+            # print(m)
+            if not m:
                 mash_last_seq_name = '{}{}{}'.format(m.group(1), MASH_COMMENT_FIELD_SEP, m.group(2))
             else:
                 mash_last_seq_name = last_seq_name
-
+            
             mash_seq_name_to_seq_id_map[mash_last_seq_name] = seq_count
             seq_id_to_seq_name_map[str(seq_count)] = last_seq_name
             seq_count += 1

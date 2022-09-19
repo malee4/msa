@@ -62,7 +62,7 @@ def getConfig():
     estSim['high'] = ESTIMATED_SIMILARITY_HIGH
     estSim['low'] = ESTIMATED_SIMILARITY_LOW
     estSim['stepsize'] = ESTIMATED_SIMILARITY_STEPSIZE
-    config['estimated_similarity'] = "estSim"
+    config['estimated_similarity'] = estSim
 
     config['threshold_precluster'] = THRESHOLD_PRECLUSTER
 

@@ -58,6 +58,7 @@ class SeqSimilarity:
         global_edge_weight_mtrx = np.zeros((seq_count, seq_count), dtype=np.float32)
         
         with os.fdopen(fid) as f:
+            
             while True:
                 line = f.readline()
                 line_fields = line.rstrip().split('\t')
@@ -67,6 +68,7 @@ class SeqSimilarity:
                 seq_name2 = line_fields[1]
                 
                 seq_id1 = mash_seq_name_to_seq_id_map[seq_name1]
+                
                 seq_id2 = mash_seq_name_to_seq_id_map[seq_name2]
                 
                 # when we have arrived at the end
@@ -109,15 +111,16 @@ class SeqSimilarity:
         print("Mash commands prepared")
         # print(mash_command)
         # returns read, write definitions
+        
         fr, fw = os.pipe()
 
         # catches any less common cases (documentation: https://docs.python.org/3/library/subprocess.html#subprocess.Popen)
+        
         args=shlex.split(mash_command)
         with subprocess.Popen(args, stdout=fw, stderr=subprocess.DEVNULL) as p:
             global_edge_weight_mtrx = cls._parse_mash_output(fr, seq_file_info.mash_seq_name_to_seq_id_map,
                                                         seq_file_info.seq_count)
          
-        
         os.close(fw)
         # print("Hello")
         # return 0
