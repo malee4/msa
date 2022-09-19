@@ -1,6 +1,6 @@
 MIN_CLUSTER_PROCESSING_SIZE = 2
 GAPS = 0
-# is_simulation = True
+IS_SIMULATION = True
 
 # SEQUENCE CONSTANTS
 DNA = 1
