@@ -7,6 +7,7 @@ from SeqSimilarity import *
 from new_Utils import get_max_precision, read_seq_file
 import os
 import sys
+from ClusterEval import *
 
 # MOFIFIED FROM ALFATCLUST FILE
 def internal_parse_to_user_params(seq_file_path, config):
@@ -92,6 +93,10 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
             seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
 
             # KEY DIFFERENCE: find the centers first
+
+            # get the centers
+            print("Getting cluster centers...")
+            cluster_ids_to_centers_and_cluster_seqs, count = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
 
     except KeyboardInterrupt:
         print()

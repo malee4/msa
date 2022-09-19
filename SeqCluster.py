@@ -21,6 +21,123 @@ class SeqCluster:
     _is_verbose = None
     _init = False
 
+    @staticmethod
+    def _convert_to_index_pos(mtrx_idxs):
+        idx_type = mtrx_idxs.dtype
+
+        if idx_type == np.bool:
+            return np.argwhere(mtrx_idxs).flatten()
+        elif idx_type == np.int:
+            return mtrx_idxs
+        else:
+            return None
+
+    @classmethod
+    def _cal_cluster_avg_edge_weight(cls, global_edge_weight_mtrx, src_cluster_edge_counts, src_cluster_row_idxs,
+                                     src_cluster_col_idxs=None):
+        if src_cluster_col_idxs is None:
+            src_cluster_col_idxs = src_cluster_row_idxs
+
+        src_cluster_mtrx_idxs = np.ix_(src_cluster_row_idxs, src_cluster_col_idxs)
+
+        if np.any(global_edge_weight_mtrx[src_cluster_mtrx_idxs] < 0):
+            return -1
+
+        if src_cluster_edge_counts is None:
+            row_idx_pos = cls._convert_to_index_pos(src_cluster_row_idxs)
+            col_idx_pos = cls._convert_to_index_pos(src_cluster_col_idxs)
+            num_of_diag_elements = np.intersect1d(row_idx_pos, col_idx_pos).size
+            num_of_non_diag_elements = row_idx_pos.size * col_idx_pos.size - num_of_diag_elements
+            if num_of_non_diag_elements == 0:
+                return 1
+
+            return (np.sum(global_edge_weight_mtrx[src_cluster_mtrx_idxs]) - num_of_diag_elements) / \
+                num_of_non_diag_elements
+        else:
+            return np.average(global_edge_weight_mtrx[src_cluster_mtrx_idxs],
+                              weights=np.tril(src_cluster_edge_counts[src_cluster_mtrx_idxs]))
+
+    @staticmethod
+    def _sort_src_clusters(global_edge_weight_mtrx, src_cluster_ids, src_cluster_edge_counts):
+        cluster_mtrx_idxs = np.ix_(src_cluster_ids, src_cluster_ids)
+        all_sorted_edge_row_idxs, all_sorted_edge_col_idxs = \
+            np.unravel_index(np.argsort(global_edge_weight_mtrx[cluster_mtrx_idxs], axis=None),
+                             shape=(src_cluster_ids.size, src_cluster_ids.size))
+        all_sorted_edge_idxs = np.array(list(zip(all_sorted_edge_row_idxs, all_sorted_edge_col_idxs)))
+
+        sorted_src_cluster_ids = list()
+        proc_src_cluster_ids = set()
+
+        for src_cluster_idx1, src_cluster_idx2 in \
+            np.flipud(all_sorted_edge_idxs[all_sorted_edge_idxs[:, 0] < all_sorted_edge_idxs[:, 1]]):
+            src_cluster_id1 = src_cluster_ids[src_cluster_idx1]
+            src_cluster_id2 = src_cluster_ids[src_cluster_idx2]
+
+            if src_cluster_id1 in proc_src_cluster_ids:
+                if src_cluster_id2 in proc_src_cluster_ids:
+                    continue
+
+                sorted_src_cluster_ids.append(src_cluster_id2)
+                proc_src_cluster_ids.add(src_cluster_id2)
+                continue
+            elif src_cluster_id2 in proc_src_cluster_ids:
+                sorted_src_cluster_ids.append(src_cluster_id1)
+                proc_src_cluster_ids.add(src_cluster_id1)
+                continue
+
+            if src_cluster_edge_counts[src_cluster_id1, src_cluster_id1] < \
+                src_cluster_edge_counts[src_cluster_id2, src_cluster_id2]:
+                sorted_src_cluster_ids.append(src_cluster_id2)
+                proc_src_cluster_ids.add(src_cluster_id2)
+                sorted_src_cluster_ids.append(src_cluster_id1)
+                proc_src_cluster_ids.add(src_cluster_id1)
+            else:
+                sorted_src_cluster_ids.append(src_cluster_id1)
+                proc_src_cluster_ids.add(src_cluster_id1)
+                sorted_src_cluster_ids.append(src_cluster_id2)
+                proc_src_cluster_ids.add(src_cluster_id2)
+
+        return sorted_src_cluster_ids
+
+
+    @classmethod
+    def _bin_src_clusters(cls, src_cluster_ids, global_edge_weight_mtrx, src_cluster_edge_counts):
+        src_cluster_bins = list()
+        avg_intra_bin_edge_weights = dict()
+
+        for src_cluster_id in cls._sort_src_clusters(global_edge_weight_mtrx, src_cluster_ids, src_cluster_edge_counts):
+            if len(src_cluster_bins) == 0:
+                src_cluster_bins.append([src_cluster_id])
+                avg_intra_bin_edge_weights[str(src_cluster_id)] = \
+                    global_edge_weight_mtrx[src_cluster_id, src_cluster_id]
+                continue
+
+            best_bin = None
+            max_merge_score = 0
+
+            for cluster_bin in src_cluster_bins:
+                bin_to_ext_src_cluster_avg_edge_weight = \
+                    cls._cal_cluster_avg_edge_weight(global_edge_weight_mtrx, src_cluster_edge_counts, cluster_bin,
+                                                     [src_cluster_id])
+                merge_score = 2 * bin_to_ext_src_cluster_avg_edge_weight - cls._res_param_end - \
+                    avg_intra_bin_edge_weights['-'.join(map(str, cluster_bin))]
+                if merge_score > max_merge_score:
+                    best_bin = cluster_bin
+                    max_merge_score = merge_score
+
+            if best_bin is None:
+                src_cluster_bins.append([src_cluster_id])
+                avg_intra_bin_edge_weights[str(src_cluster_id)] = \
+                    global_edge_weight_mtrx[src_cluster_id, src_cluster_id]
+            else:
+                del avg_intra_bin_edge_weights['-'.join(map(str, best_bin))]
+                best_bin.append(src_cluster_id)
+                avg_intra_bin_edge_weights['-'.join(map(str, best_bin))] = \
+                    cls._cal_cluster_avg_edge_weight(global_edge_weight_mtrx, src_cluster_edge_counts, best_bin)
+
+        return list(map(np.array, src_cluster_bins)), avg_intra_bin_edge_weights
+
+
     @classmethod
     def init(cls, user_params, is_verbose=True):
         cls._res_param_start = user_params.res_param_start
