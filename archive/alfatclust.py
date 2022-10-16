@@ -11,12 +11,12 @@
 # import packages
 from unicodedata import name
 from ClusterEval import *
-from Config import *
-from Constants import *
+from archive.Config import *
+from archive.Constants import *
 from Precluster import *
 from SeqCluster import *
 from SeqSimilarity import *
-from Utils import read_seq_file, convert_to_seq_clusters, get_max_precision #, internal_convert_to_seq_clusters
+from archive.Utils import read_seq_file, convert_to_seq_clusters, get_max_precision #, internal_convert_to_seq_clusters
 from collections import namedtuple
 from math import ceil
 from multiprocessing import Pool

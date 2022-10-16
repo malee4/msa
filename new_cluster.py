@@ -8,8 +8,6 @@
 # The tool has been altered to allow for direct piping into a test file
 # as a preprocessing algorithm for Lindvall's annealing MSA algorithm.
 
-
-from shutil import rmtree
 # from alfatclust import internal_parse_to_user_params
 from collections import namedtuple
 from new_Constants import *
@@ -72,8 +70,9 @@ def cluster_seqs_in_precluster(precluster_seq_records):
 
     global_edge_weight_mtrx = SeqSimilarity.get_pairwise_similarity(seq_file_info)
     sparse_edge_weight_mtrx = coo_matrix(global_edge_weight_mtrx, shape=global_edge_weight_mtrx.shape)
-
+    
     seq_cluster_ptrs = SeqCluster.cluster_seqs(global_edge_weight_mtrx)
+
     cluster_eval_output_df = \
         ClusterEval.eval_clusters_single_thread(seq_cluster_ptrs, sparse_edge_weight_mtrx.toarray(), seq_file_info)
 
@@ -167,8 +166,9 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
             # KEY DIFFERENCE: find the centers first
 
             # get the centers
+            print("get_centers reached")
             cluster_ids_to_centers_and_cluster_seqs, count = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
-            
+            print("get_centers completed")
     except KeyboardInterrupt:
         print()
         print('Process aborted due to keyboard interrupt')
@@ -182,3 +182,4 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
         Precluster.clear_temp_data()
     
     return cluster_ids_to_centers_and_cluster_seqs
+

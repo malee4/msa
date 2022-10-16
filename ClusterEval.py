@@ -251,7 +251,7 @@ class ClusterEval:
             # map all sequences to a sequence ID
             for seq_id in cluster_seq_ids:
                 seq_id_to_cluster_id_map[seq_id] = cluster_id
-            
+        
         # if both sets are empty, return empty set
         if len(seq_id_to_cluster_id_map) == 0:
             return list()
@@ -262,7 +262,6 @@ class ClusterEval:
         # dictionary of tuples containing (SeqRecord of center, list of items in cluster)
         cluster_ids_to_centers_and_cluster_seqs = dict()
         count = 0
-
     
         for cluster_id, cluster_seq_recs in cluster_to_seq_recs_map.items():
             # get the center sequence 
@@ -272,13 +271,17 @@ class ClusterEval:
                 center_seq_rec = cls._select_max_len_seq_rec(cluster_seq_recs)
                 count = count + 1
 
+            # CHANGES MADE: running into "ERROR: Process aborted due to error occurred: list index out of range"  
+            # To remedy, put break into if statement
             for number in range(len(cluster_seq_recs)):
                 item = cluster_seq_recs[number]
                 if center_seq_rec.name == item.name:
                     cluster_seq_recs.pop(number)
+                    break
             #cluster_seq_recs = cluster_seq_recs.remove(center_seq_rec)
             
             cluster_ids_to_centers_and_cluster_seqs[cluster_id] = (center_seq_rec, cluster_seq_recs)
+        
         return cluster_ids_to_centers_and_cluster_seqs, count
 
 
