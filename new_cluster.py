@@ -166,9 +166,8 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
             # KEY DIFFERENCE: find the centers first
 
             # get the centers
-            print("get_centers reached")
+            
             cluster_ids_to_centers_and_cluster_seqs, count = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
-            print("get_centers completed")
     except KeyboardInterrupt:
         print()
         print('Process aborted due to keyboard interrupt')
