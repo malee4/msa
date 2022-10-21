@@ -1,5 +1,5 @@
 from Bio import SeqIO
-from new_Constants import *
+from Constants import *
 from collections import namedtuple
 import re
 import numpy as np

@@ -10,11 +10,11 @@
 
 # from alfatclust import internal_parse_to_user_params
 from collections import namedtuple
-from new_Constants import *
+from Constants import *
 from SeqCluster import *
 from SeqSimilarity import *
 from Precluster import *
-from new_Utils import get_max_precision, read_seq_file, convert_to_seq_clusters
+from Utils import get_max_precision, read_seq_file, convert_to_seq_clusters
 import os
 import sys
 from ClusterEval import *

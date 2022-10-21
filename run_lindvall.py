@@ -4,7 +4,7 @@
 # SOURCE: "Quantum Methods for Sequence Alignment and Metagenomics"
 # URL: https://www.diva-portal.org/smash/get/diva2:1345195/FULLTEXT02
 
-import lindvall
+import Lindvall
 # from data_formats import SeqQuery
 import numpy as np
 import dimod
@@ -54,7 +54,7 @@ def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_c
     inserts = 0
     gap_penalty = 0
     params = {"gap_pen": gap_penalty, "extra_inserts": inserts}
-    mat, shift, rev_inds = lindvall.get_MSA_qubitmat(sizes, matchings,\
+    mat, shift, rev_inds = Lindvall.get_MSA_qubitmat(sizes, matchings,\
     gap_pen=gap_penalty, extra_inserts=inserts)
 
     h, J = mat_to_dimod_format(mat)

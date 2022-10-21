@@ -1,7 +1,7 @@
-from new_Constants import *
-from new_cluster import *
-from run_lindvall import run_lindvall
-from lindvall import get_alignment_string
+from Constants import *
+from Cluster import *
+from Run_lindvall import run_lindvall
+from Lindvall import get_alignment_string
 
 #from alfatclust import get_clusters_and_centers
 def get_sequence_strings(cluster, center_sequence, additional_sequences = list()):
@@ -133,7 +133,7 @@ if __name__ == '__main__':
                 # if threshold is not met, append additional sequences and continue onto next cluster
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
-        print(sequence_string_set)
+
         results = run_lindvall(sequence_string_set, old_center, simulation=IS_SIMULATION)
 
         # gets the lowest energy solution, converts to dataframe
