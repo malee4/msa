@@ -75,7 +75,6 @@ def cluster_seqs_in_precluster(precluster_seq_records):
 
     cluster_eval_output_df = \
         ClusterEval.eval_clusters_single_thread(seq_cluster_ptrs, sparse_edge_weight_mtrx.toarray(), seq_file_info)
-
     os.remove(temp_seq_file_path)
 
     return convert_to_seq_clusters(seq_cluster_ptrs, seq_file_info.seq_id_to_seq_name_map), cluster_eval_output_df, \
@@ -166,7 +165,6 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
             # KEY DIFFERENCE: find the centers first
 
             # get the centers
-            
             cluster_ids_to_centers_and_cluster_seqs, count = ClusterEval.get_centers(seq_cluster_ptrs, global_edge_weight_mtrx, seq_file_info.seq_file_path)
     except KeyboardInterrupt:
         print()
@@ -179,6 +177,8 @@ def get_clusters_and_centers(seq_file_path, is_precluster_mode = False):
         print('Process aborted due to error occurred: {}'.format(sys.exc_info()[1]))
     finally:
         Precluster.clear_temp_data()
-    
+    # for item in cluster_ids_to_centers_and_cluster_seqs:
+    #     print(item)
+    #     print(cluster_ids_to_centers_and_cluster_seqs[item])
     return cluster_ids_to_centers_and_cluster_seqs
 

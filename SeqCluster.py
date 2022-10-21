@@ -313,7 +313,6 @@ class SeqCluster:
                 break
 
             comm_graph = ig.Graph.Weighted_Adjacency(global_edge_weight_mtrx.tolist(), mode=1, loops=False)
-
         return last_seq_cluster_ptrs
 
     

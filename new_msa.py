@@ -8,10 +8,9 @@ def get_sequence_strings(cluster, center_sequence, additional_sequences = list()
     # if not cluster:
     #     return list()
     sequence_string_set = additional_sequences
-
     # if cluster is a singleton
     if not cluster:
-        return [center_sequence]
+        return [[center_sequence]]
     for item in cluster:
         sequence_string_set = sequence_string_set + [str(item.seq)]
     return sequence_string_set + [center_sequence]
@@ -90,15 +89,13 @@ if __name__ == '__main__':
 
         # if this is the first sequence, set the center sequence
         if not center_sequence:
-            current_center_sequence = id_to_center_and_cluster_map[id][0]
             center_sequence = id_to_center_and_cluster_map[id][0]
-        else:
-            current_center_sequence = id_to_center_and_cluster_map[id][0]
+        current_center_sequence = id_to_center_and_cluster_map[id][0]
 
         # get the size of the current cluster (list)
         do_not_skip = True # if additional checks are to be skipped
         cluster = id_to_center_and_cluster_map[id][1] 
-
+        
         if cluster:
             current_cluster_size = len(cluster) + 1 # recall that the center is not a part of the cluster
         else:
@@ -116,6 +113,8 @@ if __name__ == '__main__':
             if current_cluster_size >= MIN_CLUSTER_PROCESSING_SIZE:
                 # get a list of the sequences
                 sequence_string_set = get_sequence_strings(cluster, center_sequence)
+                if count == len(id_to_center_and_cluster_map) and additional_sequences:
+                    sequence_string_set = additional_sequences + sequence_string_set
                 # set the center sequence
                 center_sequence = current_center_sequence
             elif current_cluster_size + len(additional_sequences) >= MIN_CLUSTER_PROCESSING_SIZE or count == len(id_to_center_and_cluster_map): # not -1 because it starts w/ 1 with the first sequence
@@ -134,22 +133,21 @@ if __name__ == '__main__':
                 # if threshold is not met, append additional sequences and continue onto next cluster
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
-        
         results = run_lindvall(sequence_string_set, old_center, simulation=IS_SIMULATION)
 
         # gets the lowest energy solution, converts to dataframe
         positions = results.lowest().samples()[0]
-
+        
         # get the alignments
         aligned_strings = get_alignment_string(sequence_string_set, GAPS, positions)
-
+        
         # if this is the first cluster
         if not old_center:
             aligned_final = aligned_final + aligned_strings
         else:
             # merge aligned strings with past aligned sequences
             aligned_final = merge_seq_sets(aligned_final, aligned_strings)
-        
+
         # for future alignment purposes
         old_center = center_sequence
         center_sequence = None
