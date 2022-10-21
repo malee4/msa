@@ -10,10 +10,10 @@ def get_sequence_strings(cluster, center_sequence, additional_sequences = list()
     sequence_string_set = additional_sequences
     # if cluster is a singleton
     if not cluster:
-        return [[center_sequence]]
+        return [[str(center_sequence.seq)]]
     for item in cluster:
         sequence_string_set = sequence_string_set + [str(item.seq)]
-    return sequence_string_set + [center_sequence]
+    return sequence_string_set + [str(center_sequence.seq)]
 
 def find_spaces(sequence):
     shifts = []
@@ -105,7 +105,7 @@ if __name__ == '__main__':
                 do_not_skip = False
             else:
                 # if cluster is singleton, pair it with another cluster
-                additional_sequences = additional_sequences + [str(center_sequence.seq)]
+                additional_sequences = additional_sequences + [str(current_center_sequence.seq)]
                 continue
         
         # additional checks
@@ -133,6 +133,7 @@ if __name__ == '__main__':
                 # if threshold is not met, append additional sequences and continue onto next cluster
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
+        print(sequence_string_set)
         results = run_lindvall(sequence_string_set, old_center, simulation=IS_SIMULATION)
 
         # gets the lowest energy solution, converts to dataframe

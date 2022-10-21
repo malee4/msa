@@ -36,8 +36,7 @@ Simulation: flag determining to run simulated or quantum annealer
 def run_lindvall(sequence_string_set, old_center = None, samples = 1000, match_cost = -1, mismatch_cost = 1, simulation = False): 
     # if an old_center is provided, append to the sequence_string_set
     if old_center:
-        sequence_string_set = [old_center] + sequence_string_set
-
+        sequence_string_set = [old_center.seq] + sequence_string_set
     # quantum spin column version
     sizes = [len(sequence_string_set[i]) for i in range(len(sequence_string_set))]
 
