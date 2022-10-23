@@ -6,11 +6,9 @@ NVRLMML
 NVRLMML
 >P4||protein4||bacteria4|355-1200|846|complete
 PVRMNL
->P5||CblA-1_beta-lactamase||mixed_culture_bacterium_AX_gF3SD01_15|133-1023|891|complete
-MMVRMNN
->P6|protein2|bacteria2||Acinetobacter_calcoaceticus_subsp_anitratus|12-908|897|complete
+>P5|protein2|bacteria2||Acinetobacter_calcoaceticus_subsp_anitratus|12-908|897|complete
 MMNVMMNL
->P7|protein3|bacteria3||Acinetobacter_calcoaceticus_subsp_anitratus|12-908|897|complete
+>P6|protein3|bacteria3||Acinetobacter_calcoaceticus_subsp_anitratus|12-908|897|complete
 MVRLMML
->P8||protein4||bacteria4|355-1200|846|complete
+>P7||protein4||bacteria4|355-1200|846|complete
 PVRMMN
