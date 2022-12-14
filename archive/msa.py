@@ -1,8 +1,8 @@
 # this runs the algorithm
 # FASTA file >> alfatclust
 
-from lindvall import get_alignment_string
-from run_lindvall import run_lindvall
+from Lindvall import get_alignment_string
+from Run_lindvall import run_lindvall
 from alfatclust import get_clusters_and_centers
 
 

@@ -7,7 +7,7 @@
 import numpy as np
 from collections import OrderedDict
 
-def get_MSA_qubitmat(sizes, weights, gap_pen=0, extra_inserts=0, allow_delete=False, coeffs=None): 
+def get_MSA_qubitmat(sizes, weights, gap_pen=0.5, extra_inserts=0, allow_delete=False, coeffs=None): 
     """Generate Hamiltonian for Multiple Sequence Alignment (MSA) column formulation,
     as minimization problem.
     Args:
@@ -191,7 +191,6 @@ def get_positions(string_size, sequence_string_set, positions):
         for i in range(len(sequence_string_set[seq_number])):
             # create list of items
             temp = list()
-            start = count
             for j in range(count, count + string_size):
                 count = count + 1
                 temp = temp + [positions[j]]
@@ -214,4 +213,3 @@ def get_alignment_string(sequence_string_set, gaps, positions):
             if organized_positions[key][result_id]:
                 align_strings[key[0]][result_id] = sequence_string_set[key[0]][key[1]]
     return align_strings
-    

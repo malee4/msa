@@ -30,7 +30,6 @@ def shift_spaces(seq_set, shifts): # seq_set is a list of strings
 
     # manually shift each sequence
     for seq in seq_set:
-        shifted_seq = []
         for i in range(len(shifts)):
             # if a "-" exists at the position
             if shifts[i]:
@@ -133,25 +132,27 @@ if __name__ == '__main__':
                 # if threshold is not met, append additional sequences and continue onto next cluster
                 additional_sequences = get_sequence_strings(cluster, center_sequence, additional_sequences)
                 continue
-
+        
         results = run_lindvall(sequence_string_set, old_center, simulation=IS_SIMULATION)
-
+        
         # gets the lowest energy solution, converts to dataframe
         positions = results.lowest().samples()[0]
         
         # get the alignments
         aligned_strings = get_alignment_string(sequence_string_set, GAPS, positions)
-        
+        for item in aligned_strings:
+            print(item)
+        print()
         # if this is the first cluster
         if not old_center:
-            aligned_final = aligned_final + aligned_strings
+            aligned_final = aligned_strings
         else:
             # merge aligned strings with past aligned sequences
             aligned_final = merge_seq_sets(aligned_final, aligned_strings)
 
         # for future alignment purposes
         old_center = center_sequence
-        center_sequence = None
+        # center_sequence = None
 
         # cluster tracking (user output)
         if count % 5 == 0 and count != 0:

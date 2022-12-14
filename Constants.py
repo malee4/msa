@@ -49,7 +49,6 @@ Protein_GapOpeningPenalty = 11
 Protein_GapExtensionPenalty = 1
 
 MIN_CLUSTER_PROCESSING_SIZE = 2
-GAPS = 0
 SIMULATION_SETTING = True
 
 def getConfig():

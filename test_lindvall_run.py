@@ -11,9 +11,9 @@ from dwave.system.composites import EmbeddingComposite
 samples = 1000 # number of samples to run 
 save_file = "filename"
 
-# sequences = ["AT", "T"]
+sequences = ["AT", "T"]
 # sequences = ["AT", "T", "T", "A"]
-sequences = ["MVRMMN", "MNVRLMMN", "NVRLVMMN", "PVRMMN", "MVRMMNLMM", "VRMMLMM"] # write your sequences here
+# sequences = ["NVRLMLRL", "NVRLMLRL", "MNVRLMLRL", "NRLMLRL", "NVMLRLNL", "MNVRLRL"] # write your sequences here
 simulation = True # flag determining to run simulated or quantum annealer
 
 # rewards (negative) and costs (positive)
@@ -71,7 +71,7 @@ positions = response.lowest().samples()[0]
 total_len = 0
 all_seq = ""
 
-
+# there is an error in this
 def get_alignment_string(sequence_string_set, gaps, positions):
     # group positions based on sequence
     string_size = max([len(s) for s in sequence_string_set]) + gaps
@@ -114,8 +114,36 @@ for s in sequences:
 
 max_seq_len = len(positions) // total_len
 gaps = max_seq_len - max_len
-print(max_seq_len)
+
+print(gaps)
+print(positions)
 
 output = get_alignment_string(sequences, gaps, positions)
 for item in output:
     print(item)
+
+"""
+BRAINSTORMING 
+We are working with
+    G gaps
+    n total sequences, with L total letters
+    Every letter has max_seq_len spaces assigned to it
+
+max_seq_len = ...
+
+for every sequence:
+    seq_out = [] # initialize some max_seq_len length vector with '-' for spaces
+    length = ni
+    for letter in sequence:
+        letter_position = positions[subset]
+        for i in range(max_seq_len):
+            if positions[i] == 1:
+                seq_out[i] = letter
+                break
+            else: 
+                continue
+                
+
+        
+
+"""
