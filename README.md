@@ -5,6 +5,8 @@ Mentor: Mr. Gotwals
 
 To run, type python msa.py. Note that this runs only on Python versions 3.7 and 3.8.
 
+Associated Paper: https://jocse.org/downloads/jocse-14-1-5.pdf
+
 
 (temporary citations, to be finalized)
 ## Clustering Algorithms
